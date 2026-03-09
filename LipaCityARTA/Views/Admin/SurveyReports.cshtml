@@ -64,7 +64,22 @@
 
 <div class="sr-page">
 
-    <h2 class="sr-page-title">Survey Reports</h2>
+    <div class="sr-header">
+        <div class="sr-header-text">
+            <p class="sr-eyebrow">Admin Analytics</p>
+            <h1 class="sr-page-title">Survey Reports</h1>
+            <p class="sr-page-subtitle">
+                Review survey response data, monitor service quality ratings, and analyze respondent demographics.
+            </p>
+        </div>
+
+        <div class="sr-header-meta">
+            <div class="sr-meta-card">
+                <span class="sr-meta-label">Last Updated</span>
+                <strong>@DateTime.Now.ToString("MMM dd, yyyy hh:mm tt")</strong>
+            </div>
+        </div>
+    </div>
 
     <div class="sr-kpi-grid">
         <div class="sr-kpi-card">
@@ -82,19 +97,22 @@
         <div class="sr-kpi-card">
             <div class="sr-kpi-label">Overall SQD Average</div>
             <p class="sr-kpi-value" id="kpiOverallSQD">@overallAvgSQD.ToString("0.00")</p>
-            <div class="sr-kpi-sub">Avg of SQD0–SQD8</div>
+            <div class="sr-kpi-sub">Average of SQD0–SQD8</div>
         </div>
 
         <div class="sr-kpi-card">
             <div class="sr-kpi-label">Top Office</div>
             <p class="sr-kpi-value sr-kpi-value-small" id="kpiTopOffice">@topOffice</p>
-            <div class="sr-kpi-sub">Most responses</div>
+            <div class="sr-kpi-sub">Office with most responses</div>
         </div>
     </div>
 
     <div class="sr-card sr-filters">
         <div class="sr-card-top">
-            <div class="sr-section-title">Filters</div>
+            <div>
+                <div class="sr-section-title">Filters</div>
+                <p class="sr-section-subtitle">Refine the displayed survey data using the options below.</p>
+            </div>
 
             <div class="sr-filter-actions">
                 <button type="button" class="sr-btn sr-btn-primary" id="btnApply">Apply</button>
@@ -163,32 +181,56 @@
         </div>
     </div>
 
-    <div class="sr-chart-grid">
-        <div class="sr-card">
+    <div class="sr-card sr-chart-card">
+        <div class="sr-chart-head">
             <div class="sr-chart-title">Average Ratings (SQD0–SQD8)</div>
-            <canvas id="sqdChart" height="140"></canvas>
+            <p class="sr-chart-subtitle">Average score per service quality dimension.</p>
         </div>
+        <div class="sr-chart-box sr-chart-box-sm">
+            <canvas id="sqdChart"></canvas>
+        </div>
+    </div>
 
-        <div class="sr-card">
+    <div class="sr-card sr-chart-card">
+        <div class="sr-chart-head">
             <div class="sr-chart-title">Sex Distribution</div>
-            <canvas id="sexChart" height="180"></canvas>
+            <p class="sr-chart-subtitle">Breakdown of respondents by sex.</p>
         </div>
+        <div class="sr-chart-box sr-chart-box-md">
+            <canvas id="sexChart"></canvas>
+        </div>
+    </div>
 
-        <div class="sr-card">
+    <div class="sr-card sr-chart-card">
+        <div class="sr-chart-head">
             <div class="sr-chart-title">Client Type Distribution</div>
-            <canvas id="clientChart" height="180"></canvas>
+            <p class="sr-chart-subtitle">Response volume by client type.</p>
         </div>
+        <div class="sr-chart-box sr-chart-box-md">
+            <canvas id="clientChart"></canvas>
+        </div>
+    </div>
 
-        <div class="sr-card sr-card-wide">
-            <div class="sr-chart-title">Top Offices (by number of responses)</div>
-            <canvas id="officeChart" height="110"></canvas>
+    <div class="sr-card sr-card-wide sr-chart-card">
+        <div class="sr-chart-head">
+            <div class="sr-chart-title">Top Offices</div>
+            <p class="sr-chart-subtitle">Offices with the highest number of survey responses.</p>
+        </div>
+        <div class="sr-chart-box sr-chart-box-lg">
+            <canvas id="officeChart"></canvas>
         </div>
     </div>
 
     <div class="sr-card sr-table-wrap">
         <div class="sr-table-head">
-            <div class="sr-muted">
-                Top Client Type: <strong id="topClientTypeText">@topClientType</strong>
+            <div>
+                <div class="sr-section-title">Survey Response Records</div>
+                <p class="sr-section-subtitle">Detailed table of all submitted survey responses.</p>
+            </div>
+
+            <div class="sr-table-summary">
+                <span class="sr-muted">Top Client Type</span>
+                <strong id="topClientTypeText">@topClientType</strong>
             </div>
         </div>
 
@@ -237,9 +279,7 @@
                             <td>@s.CC1</td>
                             <td>@s.CC2</td>
                             <td>@s.CC3</td>
-                            <td>
-                                @s.SQD0, @s.SQD1, @s.SQD2, @s.SQD3, @s.SQD4, @s.SQD5, @s.SQD6, @s.SQD7, @s.SQD8
-                            </td>
+                            <td>@s.SQD0, @s.SQD1, @s.SQD2, @s.SQD3, @s.SQD4, @s.SQD5, @s.SQD6, @s.SQD7, @s.SQD8</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Suggestions) ? "-" : s.Suggestions)</td>
                             <td>@s.DateSubmitted.ToString("yy-MM-dd HH:mm")</td>
                         </tr>
@@ -404,12 +444,19 @@
                         labels: sqdLabels,
                         datasets: [{
                             label: "Average Rating",
-                            data: sqdAvg
+                            data: sqdAvg,
+                            backgroundColor: "rgba(124, 10, 2, 0.78)",
+                            borderRadius: 10
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
                         scales: {
+                            x: { grid: { display: false } },
                             y: { beginAtZero: true, suggestedMax: 5 }
                         }
                     }
@@ -420,10 +467,14 @@
                     data: {
                         labels: ["Male", "Female", "Other"],
                         datasets: [{
-                            data: [male, female, other]
+                            data: [male, female, other],
+                            backgroundColor: ["#7C0A02", "#DC2626", "#F59E0B"]
                         }]
                     },
-                    options: { responsive: true }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
                 });
 
                 clientChart = new Chart(document.getElementById("clientChart"), {
@@ -431,10 +482,18 @@
                     data: {
                         labels: clientLabels,
                         datasets: [{
-                            data: clientCounts
+                            data: clientCounts,
+                            backgroundColor: [
+                                "#7C0A02", "#B91C1C", "#EF4444", "#F97316",
+                                "#F59E0B", "#22C55E", "#06B6D4", "#3B82F6",
+                                "#6366F1", "#8B5CF6", "#EC4899", "#14B8A6"
+                            ]
                         }]
                     },
-                    options: { responsive: true }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
                 });
 
                 officeChart = new Chart(document.getElementById("officeChart"), {
@@ -443,12 +502,19 @@
                         labels: officeLabels,
                         datasets: [{
                             label: "Responses",
-                            data: officeCounts
+                            data: officeCounts,
+                            backgroundColor: "rgba(124, 10, 2, 0.78)",
+                            borderRadius: 10
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
                         scales: {
+                            x: { grid: { display: false } },
                             y: { beginAtZero: true }
                         }
                     }

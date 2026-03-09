@@ -5,11 +5,12 @@
 namespace LipaCityARTA.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveFromComplaint : Migration
+    public partial class AddComplaintSeverityResolvedAtAssigned : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+
         }
 
         /// <inheritdoc />

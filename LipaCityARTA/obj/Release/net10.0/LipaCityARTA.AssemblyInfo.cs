@@ -12,9 +12,9 @@ using System;
 using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("LipaCityARTA")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+625863effadd847db1056e4155e1883c486d430a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8de7a27356ecd411c06c12a13051bd8d31c6315f")]
 [assembly: System.Reflection.AssemblyProductAttribute("LipaCityARTA")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LipaCityARTA")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -24,73 +24,80 @@
 
 <div class="c-page">
 
-    <div class="c-topbar">
-        <div class="c-title">
-            <h2>Complaints Dashboard</h2>
-            <p>Track complaint volume, overdue cases, and recent submissions.</p>
+    <!-- HEADER -->
+    <div class="c-header">
+        <div class="c-header-text">
+            <p class="c-eyebrow">Admin Operations</p>
+            <h1>Complaints Management</h1>
+            <p class="c-subtitle">
+                Track complaint submissions, monitor workflow status, and manage pending, active, and resolved cases.
+            </p>
         </div>
 
-        <div class="c-filters">
-            <div class="c-pill">
-                <span>Search</span>
-                <input id="complaintSearch" placeholder="Office / email / keyword" />
+        <div class="c-header-meta">
+            <div class="c-meta-card">
+                <span>Board Summary</span>
+                <strong>@(Model.Complaints?.Count ?? 0) complaint records</strong>
             </div>
-
-            <button class="c-btn" type="button" id="exportBtn">Export</button>
         </div>
     </div>
 
-    <div class="c-grid">
-        <div class="c-card">
-            <div class="c-card-h">
-                <h3>Current Complaints Stats</h3>
-                <small>updated today</small>
+    <!-- TOOLBAR -->
+    <div class="c-toolbar-card">
+        <div class="c-toolbar">
+            <div class="c-search-wrap">
+                <label for="complaintSearch">Search Complaints</label>
+                <input id="complaintSearch" placeholder="Search by office, email, reason, or keyword" />
             </div>
 
-            <div class="c-card-b">
-                <div class="c-statstrip">
-                    <div class="c-stat">
-                        <div class="c-label">Open</div>
-                        <div class="c-value c-open">@Model.OpenCount</div>
-                    </div>
-
-                    <div class="c-stat">
-                        <div class="c-label">Overdue</div>
-                        <div class="c-value c-overdue">@Model.OverdueCount</div>
-                    </div>
-
-                    <div class="c-stat">
-                        <div class="c-label">Unassigned</div>
-                        <div class="c-value">@Model.UnassignedCount</div>
-                    </div>
-                </div>
-
-                <div class="c-kpis">
-                    <div class="c-kpi">
-                        <div class="c-k-title">New Complaints</div>
-                        <div class="c-k-value">@Model.NewComplaints</div>
-                    </div>
-
-                    <div class="c-kpi">
-                        <div class="c-k-title">Resolved</div>
-                        <div class="c-k-value">@Model.ResolvedCount</div>
-                    </div>
-
-                    <div class="c-kpi">
-                        <div class="c-k-title">Backlog (avg)</div>
-                        <div class="c-k-value">@Model.BacklogAvg</div>
-                    </div>
-                </div>
+            <div class="c-toolbar-actions">
+                <button class="c-btn c-btn-secondary" type="button" id="clearSearchBtn">Clear</button>
+                <button class="c-btn c-btn-primary" type="button" id="exportBtn">Export CSV</button>
             </div>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="c-kpi-grid">
+        <div class="c-kpi-card">
+            <div class="c-k-title">Open</div>
+            <div class="c-k-value c-open">@Model.OpenCount</div>
+            <div class="c-k-sub">Complaints awaiting completion</div>
+        </div>
+
+        <div class="c-kpi-card">
+            <div class="c-k-title">Overdue</div>
+            <div class="c-k-value c-overdue">@Model.OverdueCount</div>
+            <div class="c-k-sub">Cases needing urgent attention</div>
+        </div>
+
+        <div class="c-kpi-card">
+            <div class="c-k-title">New Complaints</div>
+            <div class="c-k-value">@Model.NewComplaints</div>
+            <div class="c-k-sub">Recently submitted complaints</div>
+        </div>
+
+        <div class="c-kpi-card">
+            <div class="c-k-title">Resolved</div>
+            <div class="c-k-value c-resolved">@Model.ResolvedCount</div>
+            <div class="c-k-sub">Cases already completed</div>
+        </div>
+
+        <div class="c-kpi-card">
+            <div class="c-k-title">Backlog Average</div>
+            <div class="c-k-value">@Model.BacklogAvg</div>
+            <div class="c-k-sub">Average pending complaint load</div>
         </div>
     </div>
 
     <div class="c-board">
 
-        <!-- Pending -->
-        <div class="c-lane">
+        <div class="c-lane c-lane-pending">
             <div class="c-lane-head">
-                <h3>Pending</h3>
+                <div>
+                    <h3>Pending</h3>
+                    <p>Awaiting initial action</p>
+                </div>
                 <span>@pendingComplaints.Count</span>
             </div>
 
@@ -117,13 +124,14 @@
                              data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
 
                             <div class="c-ticket-top">
-                                <h4>@item.Office</h4>
+                                <div>
+                                    <h4>@item.Office</h4>
+                                    <div class="c-ticket-meta">
+                                        <span>@item.ClientType</span>
+                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                </div>
                                 <span class="c-status c-st-pending">Pending</span>
-                            </div>
-
-                            <div class="c-ticket-meta">
-                                <span>@item.ClientType</span>
-                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
                             </div>
 
                             <div class="c-ticket-section">
@@ -142,7 +150,7 @@
                             </div>
 
                             <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
 
                                 <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
                                     @Html.AntiForgeryToken()
@@ -160,10 +168,12 @@
             </div>
         </div>
 
-        <!-- In Progress -->
-        <div class="c-lane">
+        <div class="c-lane c-lane-progress">
             <div class="c-lane-head">
-                <h3>In Progress</h3>
+                <div>
+                    <h3>In Progress</h3>
+                    <p>Currently being handled</p>
+                </div>
                 <span>@inProgressComplaints.Count</span>
             </div>
 
@@ -197,13 +207,14 @@
                              data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
 
                             <div class="c-ticket-top">
-                                <h4>@item.Office</h4>
+                                <div>
+                                    <h4>@item.Office</h4>
+                                    <div class="c-ticket-meta">
+                                        <span>@item.ClientType</span>
+                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                </div>
                                 <span class="c-status @statusClass">@s</span>
-                            </div>
-
-                            <div class="c-ticket-meta">
-                                <span>@item.ClientType</span>
-                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
                             </div>
 
                             <div class="c-ticket-section">
@@ -222,7 +233,7 @@
                             </div>
 
                             <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
 
                                 <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
                                     @Html.AntiForgeryToken()
@@ -240,10 +251,12 @@
             </div>
         </div>
 
-        <!-- Resolved -->
-        <div class="c-lane">
+        <div class="c-lane c-lane-resolved">
             <div class="c-lane-head">
-                <h3>Resolved</h3>
+                <div>
+                    <h3>Resolved</h3>
+                    <p>Completed complaint cases</p>
+                </div>
                 <span>@resolvedComplaints.Count</span>
             </div>
 
@@ -270,13 +283,14 @@
                              data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
 
                             <div class="c-ticket-top">
-                                <h4>@item.Office</h4>
+                                <div>
+                                    <h4>@item.Office</h4>
+                                    <div class="c-ticket-meta">
+                                        <span>@item.ClientType</span>
+                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                </div>
                                 <span class="c-status c-st-resolved">Resolved</span>
-                            </div>
-
-                            <div class="c-ticket-meta">
-                                <span>@item.ClientType</span>
-                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
                             </div>
 
                             <div class="c-ticket-section">
@@ -295,7 +309,7 @@
                             </div>
 
                             <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
                                 <span class="c-done">Completed</span>
                             </div>
                         </div>
@@ -335,6 +349,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const search = document.getElementById("complaintSearch");
+            const clearSearchBtn = document.getElementById("clearSearchBtn");
             const exportBtn = document.getElementById("exportBtn");
             const modal = document.getElementById("complaintModal");
             const closeModalBtn = document.getElementById("closeComplaintModal");
@@ -356,18 +371,18 @@
                 mReason.textContent = ticket.dataset.reason || "";
                 mMessage.textContent = ticket.dataset.message || "";
                 modal.style.display = "flex";
+                document.body.style.overflow = "hidden";
             }
 
             function closeComplaintModal() {
                 modal.style.display = "none";
+                document.body.style.overflow = "";
             }
 
             document.querySelectorAll(".js-view-complaint").forEach(button => {
                 button.addEventListener("click", function () {
                     const ticket = this.closest(".c-ticket");
-                    if (ticket) {
-                        openComplaintModal(ticket);
-                    }
+                    if (ticket) openComplaintModal(ticket);
                 });
             });
 
@@ -381,43 +396,52 @@
                 }
             });
 
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape" && modal.style.display === "flex") {
+                    closeComplaintModal();
+                }
+            });
+
+            function applySearch() {
+                const q = (search.value || "").toLowerCase().trim();
+                const tickets = document.querySelectorAll(".c-ticket");
+                const lanes = document.querySelectorAll(".c-lane");
+
+                tickets.forEach(ticket => {
+                    const text = ticket.innerText.toLowerCase();
+                    ticket.style.display = text.includes(q) ? "" : "none";
+                });
+
+                lanes.forEach(lane => {
+                    const laneBody = lane.querySelector(".c-lane-body");
+                    const allTickets = lane.querySelectorAll(".c-ticket");
+                    const visibleTickets = Array.from(allTickets).filter(t => t.style.display !== "none");
+                    const searchEmpty = lane.querySelector(".c-search-empty");
+
+                    if (searchEmpty) {
+                        searchEmpty.remove();
+                    }
+
+                    if (allTickets.length > 0 && visibleTickets.length === 0) {
+                        const div = document.createElement("div");
+                        div.className = "c-empty-lane c-search-empty";
+                        div.textContent = "No matching complaints.";
+                        laneBody.appendChild(div);
+                    }
+                });
+            }
+
             if (search) {
-                search.addEventListener("input", function () {
-                    const q = search.value.toLowerCase().trim();
-                    const tickets = document.querySelectorAll(".c-ticket");
-                    const lanes = document.querySelectorAll(".c-lane");
+                search.addEventListener("input", applySearch);
+            }
 
-                    tickets.forEach(ticket => {
-                        const text = ticket.innerText.toLowerCase();
-                        ticket.style.display = text.includes(q) ? "" : "none";
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener("click", function () {
+                    search.value = "";
+                    document.querySelectorAll(".c-ticket").forEach(ticket => {
+                        ticket.style.display = "";
                     });
-
-                    lanes.forEach(lane => {
-                        const visibleTickets = lane.querySelectorAll('.c-ticket[style=""], .c-ticket:not([style])');
-                        const emptyLane = lane.querySelector(".c-empty-lane");
-
-                        if (!lane.querySelector(".c-ticket")) {
-                            return;
-                        }
-
-                        if (visibleTickets.length === 0) {
-                            if (!lane.querySelector(".c-search-empty")) {
-                                const div = document.createElement("div");
-                                div.className = "c-empty-lane c-search-empty";
-                                div.textContent = "No matching complaints.";
-                                lane.querySelector(".c-lane-body").appendChild(div);
-                            }
-                        } else {
-                            const searchEmpty = lane.querySelector(".c-search-empty");
-                            if (searchEmpty) {
-                                searchEmpty.remove();
-                            }
-                        }
-
-                        if (emptyLane && lane.querySelector(".c-ticket")) {
-                            emptyLane.style.display = "none";
-                        }
-                    });
+                    document.querySelectorAll(".c-search-empty").forEach(el => el.remove());
                 });
             }
 

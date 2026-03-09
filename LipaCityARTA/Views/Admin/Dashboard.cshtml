@@ -3,66 +3,141 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Dashboard";
+
+    var totalOfficeResponses = Model.OfficeBreakdown?.Sum(o => o.Count) ?? 0;
+    var officeCount = Model.OfficeBreakdown?.Count() ?? 0;
+    var topOffice = !string.IsNullOrWhiteSpace(Model.MostVisitedOffice)
+        ? Model.MostVisitedOffice
+        : "No data available";
+
+    var overallAvgSqd = (Model.AvgSQDs != null && Model.AvgSQDs.Any())
+        ? Model.AvgSQDs.Average()
+        : 0;
 }
 
 <link rel="stylesheet" href="@Url.Content("~/css/admin-dashboard.css")" />
 
 <div class="dashboard-container">
 
-    <!-- KPI CARDS -->
-    <div class="dashboard-main">
+    <div class="dashboard-header">
+        <div class="dashboard-header-text">
+            <p class="dashboard-eyebrow">Admin Overview</p>
+            <h1>Dashboard</h1>
+            <p class="dashboard-subtitle">
+                Monitor surveys, complaints, and service performance across offices.
+            </p>
+        </div>
 
+        <div class="dashboard-header-meta">
+            <div class="meta-card">
+                <span class="meta-label">Last Updated</span>
+                <strong>@DateTime.Now.ToString("MMM dd, yyyy hh:mm tt")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-main">
         <div class="dashboard-card">
             <h3>Total Submissions</h3>
             <p class="stat-number">@Model.TotalSubmissions</p>
+            <p class="card-note">Combined survey and complaint records</p>
         </div>
 
         <div class="dashboard-card">
             <h3>Total Surveys</h3>
             <p class="stat-number">@Model.TotalSurveys</p>
+            <p class="card-note">Survey forms submitted</p>
         </div>
 
         <div class="dashboard-card">
             <h3>Total Complaints</h3>
             <p class="stat-number">@Model.TotalComplaints</p>
+            <p class="card-note">Complaints received by the system</p>
         </div>
 
         <div class="dashboard-card">
             <h3>Active Users</h3>
             <p class="stat-number">@Model.ActiveUsers</p>
+            <p class="card-note">Currently active admin-side users</p>
         </div>
 
-        <div class="dashboard-card">
+        <div class="dashboard-card warning-card">
             <h3>Pending Complaints</h3>
             <p class="stat-number">@Model.PendingComplaints</p>
+            <p class="card-note">Complaints awaiting action</p>
         </div>
-
-        <div class="dashboard-card">
-            <h3>Most Active Office</h3>
-            <p class="stat-number">@Model.MostVisitedOffice</p>
-        </div>
-
     </div>
 
-    <div class="card mt-4">
-        <h3 class="section-title">Survey Responses Breakdown by Office</h3>
-        <canvas id="officePieChart" style="height:360px; width:100%;"></canvas>
+    <div class="insights-grid">
+        <div class="insight-card">
+            <div>
+                <p class="insight-label">Most Active Office</p>
+                <h3 class="insight-title">@topOffice</h3>
+            </div>
+            <div class="insight-badge">Top Office</div>
+        </div>
+
+        <div class="insight-card">
+            <div>
+                <p class="insight-label">Overall Average SQD</p>
+                <h3 class="insight-title">@overallAvgSqd.ToString("0.00") / 5.00</h3>
+            </div>
+            <div class="insight-badge">Quality Score</div>
+        </div>
+
+        <div class="insight-card">
+            <div>
+                <p class="insight-label">Offices with Responses</p>
+                <h3 class="insight-title">@officeCount</h3>
+            </div>
+            <div class="insight-badge">Coverage</div>
+        </div>
+    </div>
+
+    <div class="card card-large mt-4">
+        <div class="card-header">
+            <div>
+                <h3 class="section-title">Survey Responses Breakdown by Office</h3>
+                <p class="section-subtitle">Distribution of submitted surveys across all participating offices.</p>
+            </div>
+            <div class="card-header-stat">
+                <span>Total Responses</span>
+                <strong>@totalOfficeResponses</strong>
+            </div>
+        </div>
+
+        <canvas id="officePieChart"></canvas>
     </div>
 
     <div class="charts-grid mt-4">
-        <div class="card">
-            <h3 class="section-title">Average SQD Ratings</h3>
-            <canvas id="avgSQDChart" style="height:280px; width:100%;"></canvas>
+        <div class="card chart-card">
+            <div class="card-header">
+                <div>
+                    <h3 class="section-title">Average SQD Ratings</h3>
+                    <p class="section-subtitle">Average rating for each service quality dimension.</p>
+                </div>
+            </div>
+            <canvas id="avgSQDChart"></canvas>
         </div>
 
-        <div class="card">
-            <h3 class="section-title">Survey Submission Trend</h3>
-            <canvas id="trendChart" style="height:280px; width:100%;"></canvas>
+        <div class="card chart-card">
+            <div class="card-header">
+                <div>
+                    <h3 class="section-title">Survey Submission Trend</h3>
+                    <p class="section-subtitle">Survey activity over time based on recorded submissions.</p>
+                </div>
+            </div>
+            <canvas id="trendChart"></canvas>
         </div>
     </div>
 
     <div class="card mt-4">
-        <h3 class="section-title">Recent Complaints</h3>
+        <div class="card-header">
+            <div>
+                <h3 class="section-title">Recent Complaints</h3>
+                <p class="section-subtitle">Latest complaint entries received by the system.</p>
+            </div>
+        </div>
 
         @if (Model.RecentComplaints != null && Model.RecentComplaints.Any())
         {
@@ -70,15 +145,29 @@
                 @foreach (var complaint in Model.RecentComplaints)
                 {
                     <li>
-                        <strong>@complaint.Reason</strong>
-                        <span>@complaint.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                        <div class="recent-main">
+                            <strong>@complaint.Reason</strong>
+                            <p>
+                                @(string.IsNullOrWhiteSpace(complaint.Office) ? "Office not specified" : complaint.Office)
+                            </p>
+                        </div>
+
+                        <div class="recent-meta">
+                            <span class="status-badge @(complaint.Status?.ToLower() == "resolved" ? "resolved" : "pending")">
+                                @(string.IsNullOrWhiteSpace(complaint.Status) ? "Pending" : complaint.Status)
+                            </span>
+                            <small>@complaint.DateSubmitted.ToString("MMM dd, yyyy")</small>
+                        </div>
                     </li>
                 }
             </ul>
         }
         else
         {
-            <p class="no-data">No recent complaints.</p>
+            <div class="empty-state">
+                <h4>No recent complaints yet</h4>
+                <p>New complaint submissions will appear here once records are added.</p>
+            </div>
         }
     </div>
 
@@ -142,7 +231,7 @@
                     labels: sqdLabels,
                     datasets: [{
                         data: sqdAverages,
-                        backgroundColor: "rgba(124, 10, 2, 0.7)",
+                        backgroundColor: "rgba(124, 10, 2, 0.75)",
                         borderRadius: 10
                     }]
                 },
@@ -153,9 +242,13 @@
                         legend: { display: false }
                     },
                     scales: {
+                        x: {
+                            grid: { display: false }
+                        },
                         y: {
                             beginAtZero: true,
-                            max: 5
+                            max: 5,
+                            ticks: { stepSize: 1 }
                         }
                     }
                 }
@@ -170,7 +263,9 @@
                         borderColor: "#7C0A02",
                         backgroundColor: "rgba(124, 10, 2, 0.12)",
                         fill: true,
-                        tension: 0.35
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointHoverRadius: 5
                     }]
                 },
                 options: {
@@ -178,6 +273,15 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
                     }
                 }
             });
@@ -186,6 +290,7 @@
 
             if (!officeLabels.length || total === 0) {
                 const ctx = officeEl.getContext("2d");
+                ctx.clearRect(0, 0, officeEl.width, officeEl.height);
                 ctx.font = "600 18px system-ui";
                 ctx.fillStyle = "#6b7280";
                 ctx.fillText("No office data available.", 20, 40);
@@ -218,9 +323,9 @@
                     ctx.fillStyle = "#6b7280";
                     ctx.fillText("TOTAL", x, y - 12);
 
-                    ctx.font = "800 24px system-ui";
+                    ctx.font = "800 26px system-ui";
                     ctx.fillStyle = "#111827";
-                    ctx.fillText(String(total), x, y + 12);
+                    ctx.fillText(String(total), x, y + 14);
 
                     ctx.restore();
                 }
@@ -233,8 +338,8 @@
                     datasets: [{
                         data: officeCounts,
                         backgroundColor: colors,
-                        borderColor: "#fff",
-                        borderWidth: 3,
+                        borderColor: "#ffffff",
+                        borderWidth: 4,
                         hoverOffset: 8
                     }]
                 },
@@ -244,7 +349,11 @@
                     cutout: "68%",
                     plugins: {
                         legend: {
-                            position: "right"
+                            position: "right",
+                            labels: {
+                                boxWidth: 14,
+                                padding: 18
+                            }
                         },
                         tooltip: {
                             callbacks: {
