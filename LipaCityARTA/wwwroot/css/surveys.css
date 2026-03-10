@@ -1,0 +1,227 @@
+﻿.survey-container {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    box-sizing: border-box;
+}
+
+    .survey-container form {
+        width: 100%;
+    }
+
+.survey-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 40px 42px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.14);
+    margin-bottom: 30px;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+    .survey-card h2 {
+        margin: 10px 0 26px;
+        font-size: clamp(36px, 5vw, 64px);
+        color: #111;
+        line-height: 1.08;
+    }
+
+.survey-form-group {
+    margin-bottom: 22px;
+}
+
+    .survey-form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #222;
+        font-size: 16px;
+    }
+
+.survey-input {
+    width: 100%;
+    max-width: 560px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    background: #fff;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+    .survey-input:focus,
+    #officeSearch:focus,
+    #officeSelect:focus {
+        outline: none;
+        border-color: #7C0A02;
+        box-shadow: 0 0 0 4px rgba(124, 10, 2, 0.08);
+    }
+
+.office-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+#officeSearch {
+    width: 220px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+#officeSelect {
+    width: 380px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 15px;
+    background: #fff;
+}
+
+.survey-container .tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.survey-container .tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: 1px solid #cfcfcf;
+    border-radius: 999px;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.88);
+    color: #333;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+    .survey-container .tag:hover {
+        background-color: #7C0A02;
+        color: white;
+        border-color: #7C0A02;
+        transform: translateY(-1px);
+    }
+
+    .survey-container .tag.selected {
+        background-color: #7C0A02;
+        color: white;
+        border-color: #7C0A02;
+    }
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: #eadfdf;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #7C0A02;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.step-label {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #b00000;
+    font-size: 15px;
+}
+
+.star-rating {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 30px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.star {
+    cursor: pointer;
+    font-size: 28px;
+    color: #d0d0d0;
+    transition: transform 0.2s, color 0.2s;
+}
+
+    .star.selected,
+    .star.hovered {
+        color: gold;
+        transform: scale(1.15);
+    }
+
+.button-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0 24px;
+    flex-wrap: wrap;
+}
+
+.text-danger {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .survey-container {
+        padding: 16px 12px 24px;
+    }
+
+    .survey-card {
+        padding: 24px 18px;
+        border-radius: 18px;
+    }
+
+        .survey-card h2 {
+            font-size: 34px;
+        }
+
+    .survey-input,
+    #officeSearch,
+    #officeSelect {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+    }
+
+        .button-group .start-btn,
+        .button-group .back-btn {
+            text-align: center;
+        }
+}

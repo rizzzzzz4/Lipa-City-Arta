@@ -1,0 +1,55 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Privacy Policy";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy</title>
+    <link rel="stylesheet" href="~/css/survey.css" />
+</head>
+<body>
+    <div class="welcome-container">
+        <header class="header">
+            <img src="~/images/logo.png" class="logo" />
+            <div class="header-text">
+                <h1>LIPA CITY</h1>
+                <p>Anti-Red Tape Authority</p>
+            </div>
+
+            <nav class="header-nav">
+                <a href="@Url.Action("Index", "Home")" class="nav-btn">Home</a>
+                <a href="@Url.Action("Privacy", "Home")" class="nav-btn">Privacy</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="card intro-card privacy">
+                <h1>Privacy</h1>
+
+                <p>
+                    We value your privacy and are committed to protecting your personal information. Any data you provide,
+                    such as your name, email, address, or feedback, will be kept confidential and used only for legitimate
+                    purposes. We do not share your information with third parties without your consent, unless required by law.
+                </p>
+
+                <p>
+                    By using this website, you agree to our privacy practices.
+                </p>
+
+                <a href="@Url.Action("Choose", "Public")" class="start-btn">Back</a>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>© 2026 ARTA – Lipa City Government</p>
+        </footer>
+
+        <img src="~/images/avatar.png" class="avatar" alt="Help Desk Avatar">
+    </div>
+
+    <script src="~/js/survey.js"></script>
+</body>
+</html>

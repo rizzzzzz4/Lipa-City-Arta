@@ -1,0 +1,363 @@
+﻿@model LipaCityARTA.ViewModels.AnalyticsDashboardViewModel
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Analytics Reports";
+}
+
+<link rel="stylesheet" href="@Url.Content("~/css/admin-analytics.css")" />
+
+<div class="ar-page">
+    <div class="ar-topbar">
+        <div class="ar-title">
+            <h2>Analytics Reports</h2>
+            <p>Compare office performance, satisfaction, and complaints.</p>
+        </div>
+
+        <form method="get" class="ar-filters">
+
+            <div class="ar-pill">
+                <span>From</span>
+                <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="ar-pill">
+                <span>To</span>
+                <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="ar-pill">
+                <span>Office</span>
+                <select name="office">
+                    <option value="">All Offices</option>
+                    @foreach (var officeName in Model.Offices)
+                    {
+                        <option value="@officeName" selected="@(Model.Office == officeName)">
+                            @officeName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="ar-btn">Apply</button>
+
+        </form> 
+    </div>
+
+    <div class="ar-grid ar-grid-kpi">
+        <div class="ar-card">
+            <div class="ar-card-h">
+                <h3>KPIs</h3>
+                <small>summary</small>
+            </div>
+            <div class="ar-card-b">
+                <div class="ar-kpis">
+                    <div class="ar-kpi">
+                        <div class="ar-k-title">Total Submissions</div>
+                        <div class="ar-k-value">@(Model.TotalSurveys + Model.TotalComplaints)</div>
+                    </div>
+
+                    <div class="ar-kpi">
+                        <div class="ar-k-title">Total Surveys</div>
+                        <div class="ar-k-value">@Model.TotalSurveys</div>
+                    </div>
+
+                    <div class="ar-kpi">
+                        <div class="ar-k-title">Total Complaints</div>
+                        <div class="ar-k-value">@Model.TotalComplaints</div>
+                    </div>
+
+                    <div class="ar-kpi">
+                        <div class="ar-k-title">Avg Satisfaction (1–5)</div>
+                        <div class="ar-k-value">@Model.AvgSatisfaction.ToString("0.00")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ar-grid ar-grid-main">
+        <div class="ar-card">
+            <div class="ar-card-h">
+                <h3>Office-to-Office Comparison</h3>
+                <small>complaints vs satisfaction</small>
+            </div>
+            <div class="ar-card-b">
+                <div class="ar-chart-wrap">
+                    <canvas id="officeChart"></canvas>
+                </div>
+                <div class="ar-note">Tip: click a bar to drill down by office.</div>
+            </div>
+        </div>
+
+        <div class="ar-card">
+            <div class="ar-card-h">
+                <h3>Top / Bottom</h3>
+                <small>performance</small>
+            </div>
+            <div class="ar-card-b">
+                <div class="ar-list-block">
+                    <div>
+                        <b>Top Offices (Satisfaction)</b>
+                        <ul class="ar-list">
+                            @foreach (var x in Model.TopOffices)
+                            {
+                                <li>@x.Office — @x.Score.ToString("0.00")</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div>
+                        <b>Bottom Offices (Satisfaction)</b>
+                        <ul class="ar-list">
+                            @foreach (var x in Model.BottomOffices)
+                            {
+                                <li>@x.Office — @x.Score.ToString("0.00")</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div>
+                        <b>Lowest Survey Questions</b>
+                        <ul class="ar-list">
+                            @foreach (var q in Model.LowestQuestions)
+                            {
+                                <li>@q.Question — @q.Score.ToString("0.00")</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="officesJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Offices ?? new List<string>()))
+</script>
+
+<script type="application/json" id="officeSatJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OfficeSatisfaction ?? new List<double>()))
+</script>
+
+<script type="application/json" id="officeCmpJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OfficeComplaints ?? new List<int>()))
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const rows = Array.from(document.querySelectorAll("#surveyTable tbody .data-row"));
+            const filteredCountEl = document.getElementById("filteredCount");
+
+            const fOffice = document.getElementById("fOffice");
+            const fSex = document.getElementById("fSex");
+            const fClientType = document.getElementById("fClientType");
+            const fAgeMin = document.getElementById("fAgeMin");
+            const fAgeMax = document.getElementById("fAgeMax");
+            const fFrom = document.getElementById("fFrom");
+            const fTo = document.getElementById("fTo");
+
+            const btnApply = document.getElementById("btnApply");
+            const btnReset = document.getElementById("btnReset");
+
+            const sqdLabels = ["SQD0","SQD1","SQD2","SQD3","SQD4","SQD5","SQD6","SQD7","SQD8"];
+
+            function normalize(v) {
+                return (v || "").toString().trim().toLowerCase();
+            }
+
+            function parseSQDs(text) {
+                return text.split(",").map(x => parseFloat(x.trim()) || 0);
+            }
+
+            function getVisibleRows() {
+                return rows.filter(r => r.style.display !== "none");
+            }
+
+            let sqdChart, sexChart, clientChart, officeChart;
+
+            function buildCharts(visibleRows) {
+                const sqdTotals = Array(9).fill(0);
+                let sqdCount = 0;
+
+                let male = 0, female = 0, other = 0;
+                const clientMap = {};
+                const officeMap = {};
+
+                visibleRows.forEach(r => {
+                    const cells = r.querySelectorAll("td");
+
+                    const office = cells[1]?.innerText.trim() || "Unknown";
+                    const sex = normalize(cells[3]?.innerText);
+                    const clientType = cells[4]?.innerText.trim() || "Unknown";
+                    const sqdText = cells[8]?.innerText || "";
+
+                    const sqds = parseSQDs(sqdText);
+                    if (sqds.length === 9) {
+                        for (let i = 0; i < 9; i++) {
+                            sqdTotals[i] += sqds[i];
+                        }
+                        sqdCount++;
+                    }
+
+                    if (sex === "male") male++;
+                    else if (sex === "female") female++;
+                    else other++;
+
+                    clientMap[clientType] = (clientMap[clientType] || 0) + 1;
+                    officeMap[office] = (officeMap[office] || 0) + 1;
+                });
+
+                const sqdAvg = sqdTotals.map(x => sqdCount > 0 ? x / sqdCount : 0);
+
+                const clientLabels = Object.keys(clientMap);
+                const clientCounts = Object.values(clientMap);
+
+                const sortedOffices = Object.entries(officeMap)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                const officeLabels = sortedOffices.map(x => x[0]);
+                const officeCounts = sortedOffices.map(x => x[1]);
+
+                if (sqdChart) sqdChart.destroy();
+                if (sexChart) sexChart.destroy();
+                if (clientChart) clientChart.destroy();
+                if (officeChart) officeChart.destroy();
+
+                sqdChart = new Chart(document.getElementById("sqdChart"), {
+                    type: "bar",
+                    data: {
+                        labels: sqdLabels,
+                        datasets: [{
+                            label: "Average Rating",
+                            data: sqdAvg
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, suggestedMax: 5 }
+                        }
+                    }
+                });
+
+                sexChart = new Chart(document.getElementById("sexChart"), {
+                    type: "pie",
+                    data: {
+                        labels: ["Male", "Female", "Other"],
+                        datasets: [{
+                            data: [male, female, other]
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+
+                clientChart = new Chart(document.getElementById("clientChart"), {
+                    type: "doughnut",
+                    data: {
+                        labels: clientLabels,
+                        datasets: [{
+                            data: clientCounts
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+
+                officeChart = new Chart(document.getElementById("officeChart"), {
+                    type: "bar",
+                    data: {
+                        labels: officeLabels,
+                        datasets: [{
+                            label: "Responses",
+                            data: officeCounts
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            function applyFilters() {
+                const officeVal = normalize(fOffice.value);
+                const sexVal = normalize(fSex.value);
+                const clientVal = normalize(fClientType.value);
+
+                const ageMin = fAgeMin.value ? parseInt(fAgeMin.value, 10) : null;
+                const ageMax = fAgeMax.value ? parseInt(fAgeMax.value, 10) : null;
+
+                const fromDate = fFrom.value ? new Date(fFrom.value + "T00:00:00") : null;
+                const toDate = fTo.value ? new Date(fTo.value + "T23:59:59") : null;
+
+                let visible = 0;
+
+                rows.forEach(r => {
+                    const rOffice = normalize(r.dataset.office);
+                    const rSex = normalize(r.dataset.sex);
+                    const rClient = normalize(r.dataset.client);
+                    const rAge = parseInt(r.dataset.age || "0", 10);
+
+                    const rDateStr = r.dataset.date || "";
+                    const rDate = rDateStr ? new Date(rDateStr + "T12:00:00") : null;
+
+                    let ok = true;
+
+                    if (officeVal && rOffice !== officeVal) ok = false;
+
+                    if (sexVal) {
+                        if (sexVal === "other") {
+                            if (rSex === "male" || rSex === "female") ok = false;
+                        } else if (rSex !== sexVal) {
+                            ok = false;
+                        }
+                    }
+
+                    if (clientVal && rClient !== clientVal) ok = false;
+                    if (ageMin !== null && rAge < ageMin) ok = false;
+                    if (ageMax !== null && rAge > ageMax) ok = false;
+                    if (fromDate && rDate && rDate < fromDate) ok = false;
+                    if (toDate && rDate && rDate > toDate) ok = false;
+
+                    r.style.display = ok ? "" : "none";
+                    if (ok) visible++;
+                });
+
+                filteredCountEl.textContent = `Showing: ${visible} / ${rows.length}`;
+
+                buildCharts(getVisibleRows());
+            }
+
+            function resetFilters() {
+                fOffice.value = "";
+                fSex.value = "";
+                fClientType.value = "";
+                fAgeMin.value = "";
+                fAgeMax.value = "";
+                fFrom.value = "";
+                fTo.value = "";
+
+                rows.forEach(r => r.style.display = "");
+                filteredCountEl.textContent = `Showing: ${rows.length} / ${rows.length}`;
+
+                buildCharts(rows);
+            }
+
+            btnApply.addEventListener("click", applyFilters);
+            btnReset.addEventListener("click", resetFilters);
+
+            buildCharts(rows);
+        });
+    </script>
+}

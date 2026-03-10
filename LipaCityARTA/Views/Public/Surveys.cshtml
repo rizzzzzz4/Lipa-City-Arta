@@ -1,0 +1,339 @@
+﻿@model LipaCityARTA.Models.SurveyResponse
+
+@{
+    Layout = "~/Views/Shared/_SurveyLayout.cshtml";
+    ViewData["Title"] = "Surveys";
+}
+
+<link rel="stylesheet" href="~/css/surveys.css" />
+
+<div class="survey-container">
+
+    <form asp-controller="Public" asp-action="Surveys" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="survey-card">
+            <div class="progress-container">
+                <div class="progress-bar" style="width:100%;"></div>
+            </div>
+            <p class="step-label">Step 1 of 3 – Client Information</p>
+            <h2>Client Information</h2>
+
+            <div class="survey-form-group">
+                <label asp-for="Office">Choose Office</label>
+                <div class="office-filter">
+                    <input type="text" id="officeSearch" placeholder="Search office...">
+                    <select asp-for="Office" id="officeSelect" class="survey-input">
+                        <option value="0">-- Select Office --</option>
+                        <option>City Mayor's Office</option>
+                        <option>City Vice Mayor's Office</option>
+                        <option>City Administrator</option>
+                        <option>City Legal Office</option>
+                        <option>City Assessor's Office</option>
+                        <option>City Accounting Office</option>
+                        <option>City Agriculture Office</option>
+                        <option>City Budget Office</option>
+                        <option>City Civil Registrar's Office</option>
+                        <option>City Community Affairs Office</option>
+                        <option>City Cooperatives Office</option>
+                        <option>City Disaster Risk Reduction and Management Office</option>
+                        <option>City Engineering Office</option>
+                        <option>City Environment and Natural Resources Office</option>
+                        <option>City General Services Office</option>
+                        <option>City Health Office</option>
+                        <option>City Hospital Systems Office</option>
+                        <option>City Permits and Licensing Office</option>
+                        <option>City Personnel Office</option>
+                        <option>City Planning and Development Office</option>
+                        <option>City Public Order and Safety Office</option>
+                        <option>City Social Welfare and Development Office</option>
+                        <option>City Traffic Management and Transportation Office</option>
+                        <option>City Treasurer's Office</option>
+                        <option>City Veterinary Office</option>
+                        <option>Kolehiyo ng Lungsod ng Lipa</option>
+                        <option>City Sangguniang Panlungsod Office</option>
+                    </select>
+                </div>
+                <span asp-validation-for="Office" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label asp-for="Age">Age</label>
+                <input asp-for="Age" type="number" class="survey-input" min="1" />
+                <span asp-validation-for="Age" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>Sex</label>
+                <div id="sex-tags" class="tag-container">
+                    <span class="tag" data-value="Male">Male</span>
+                    <span class="tag" data-value="Female">Female</span>
+                </div>
+                <input type="hidden" asp-for="Sex" id="Sex" />
+                <span asp-validation-for="Sex" class="text-danger"></span>
+            </div>
+            
+            <div class="survey-form-group">
+                <label>Client Type</label>
+                <div id="client-tags" class="tag-container">
+                    <span class="tag" data-value="Citizen">Citizen</span>
+                    <span class="tag" data-value="Business">Business</span>
+                    <span class="tag" data-value="Government">Government</span>
+                </div>
+                <input type="hidden" asp-for="ClientType" id="ClientType" />
+                <span asp-validation-for="ClientType" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label asp-for="Email">Email (Optional)</label>
+                <input asp-for="Email" type="email" class="survey-input" />
+            </div>
+        </div>
+
+        <div class="survey-card">
+            <div class="progress-container">
+                <div class="progress-bar" style="width:100%;"></div>
+            </div>
+            <p class="step-label">Step 2 of 3 – Citizen Charter</p>
+            <h2>Citizen Charter Awareness</h2>
+
+            <div class="survey-form-group">
+                <label><b>CC1.</b> Which of the following best describes your awareness of a CC?</label>
+                <select asp-for="CC1" class="survey-input">
+                    <option value="0">-- Select --</option>
+                    <option value="1">I know what a CC is and I saw this office's CC.</option>
+                    <option value="2">I know what a CC is but I did NOT see this office's CC.</option>
+                    <option value="3">I learned of the CC only when I saw this office's CC.</option>
+                    <option value="4">I do not know what a CC is and I did not see one in this office.</option>
+                </select>
+                <span asp-validation-for="CC1" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label><b>CC2.</b> If aware of CC (answered 1–3 in CC1), would you say that the CC of this office was…?</label>
+                <select asp-for="CC2" class="survey-input">
+                    <option value="0">-- Select --</option>
+                    <option value="1">Easy to see.</option>
+                    <option value="2">Somewhat easy to see.</option>
+                    <option value="3">Difficult to see.</option>
+                    <option value="4">Not visible at all.</option>
+                    <option value="5">N/A</option>
+                </select>
+                <span asp-validation-for="CC2" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label><b>CC3.</b> If aware of CC (answered 1–3 in CC1), how much did the CC help you in your transaction?</label>
+                <select asp-for="CC3" class="survey-input">
+                    <option value="0">-- Select --</option>
+                    <option value="1">Helped very much.</option>
+                    <option value="2">Somewhat helped.</option>
+                    <option value="3">Did not help.</option>
+                    <option value="4">N/A</option>
+                </select>
+                <span asp-validation-for="CC3" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="survey-card">
+            <div class="progress-container">
+                <div class="progress-bar" style="width:100%;"></div>
+            </div>
+            <p class="step-label">Step 3 of 3 – Service Quality</p>
+            <h2>Service Quality Feedback</h2>
+
+            <div class="survey-form-group">
+                <label>SQD0. I spent a reasonable amount of time for my transaction.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD0" />
+                <span asp-validation-for="SQD0" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD1. The office followed the transaction’s requirements.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD1" />
+                <span asp-validation-for="SQD1" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD2. The steps were easy and simple.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD2" />
+                <span asp-validation-for="SQD2" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD3. I easily found information about my transaction.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD3" />
+                <span asp-validation-for="SQD3" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD4. I paid a reasonable amount of fees.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD4" />
+                <span asp-validation-for="SQD4" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD5. The office was fair to everyone.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD5" />
+                <span asp-validation-for="SQD5" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD6. I was treated courteously by the staff.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD6" />
+                <span asp-validation-for="SQD6" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD7. I got what I needed or denial was explained.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD7" />
+                <span asp-validation-for="SQD7" class="text-danger"></span>
+            </div>
+
+            <div class="survey-form-group">
+                <label>SQD8. Overall, I am satisfied with the service.</label>
+                <div class="star-rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i">&#9733;</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="SQD8" />
+                <span asp-validation-for="SQD8" class="text-danger"></span>
+            </div>
+
+            <div class="button-group">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <a asp-action="Choose" class="back-btn">Back</a>
+                <button type="submit" class="start-btn">Submit Survey</button>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            function setupTagSelector(containerId, inputId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const input = document.getElementById(inputId);
+                const tags = container.querySelectorAll(".tag");
+
+                tags.forEach(tag => {
+                    tag.addEventListener("click", () => {
+                        tags.forEach(t => {
+                            t.style.display = "inline-block";
+                            t.classList.remove("selected");
+                        });
+                        tags.forEach(t => { if (t !== tag) t.style.display = "none"; });
+                        tag.classList.add("selected");
+                        input.value = tag.dataset.value;
+                    });
+                });
+            }
+
+            setupTagSelector("sex-tags", "Sex");
+            setupTagSelector("client-tags", "ClientType");
+
+            const officeSelect = document.getElementById("officeSelect");
+            const officeSearch = document.getElementById("officeSearch");
+            const originalOptions = Array.from(officeSelect.options);
+
+            officeSearch.addEventListener("keyup", function () {
+                const filter = this.value.toLowerCase();
+                officeSelect.innerHTML = "";
+                originalOptions.forEach(option => {
+                    if (option.text.toLowerCase().includes(filter)) officeSelect.appendChild(option);
+                });
+            });
+
+            document.querySelectorAll(".star-rating").forEach(rating => {
+                const stars = rating.querySelectorAll(".star");
+                const hiddenInput = rating.nextElementSibling;
+
+                stars.forEach((star, index) => {
+                    star.addEventListener("click", () => {
+                        hiddenInput.value = index + 1;
+                        stars.forEach((s, i) => s.classList.toggle("selected", i <= index));
+                    });
+                    star.addEventListener("mouseover", () => {
+                        stars.forEach((s, i) => s.classList.toggle("hovered", i <= index));
+                    });
+                    star.addEventListener("mouseout", () => {
+                        stars.forEach(s => s.classList.remove("hovered"));
+                    });
+                });
+            });
+
+            document.querySelector("form").addEventListener("submit", function(e) {
+                const sex = document.getElementById("Sex").value;
+                const client = document.getElementById("ClientType").value;
+
+                if (!sex) { alert("Please select Sex"); e.preventDefault(); return; }
+                if (!client) { alert("Please select Client Type"); e.preventDefault(); return; }
+
+                const starInputs = document.querySelectorAll(".star-rating + input[type='hidden']");
+                for (const input of starInputs) {
+                    if (!input.value) {
+                        alert("Please rate all service quality questions");
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            });
+        });
+    </script>
+}

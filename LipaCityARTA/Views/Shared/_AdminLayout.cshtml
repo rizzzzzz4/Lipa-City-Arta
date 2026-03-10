@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+
+    <link rel="stylesheet" href="@Url.Content("~/lib/bootstrap/dist/css/bootstrap.min.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/css/admin.css")" />
+</head>
+
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
+        <div class="container-fluid">
+
+            <a class="navbar-brand d-flex align-items-center"
+               asp-controller="Admin"
+               asp-action="Dashboard">
+                <img src="@Url.Content("~/images/logo.png")"
+                     alt="Lipa City Logo"
+                     class="admin-logo me-2" />
+                <span class="brand-text">Lipa City ARTA - Admin</span>
+            </a>
+
+            <div class="d-flex align-items-center ms-auto gap-2">
+                <a class="nav-link text-white"
+                   asp-controller="Admin"
+                   asp-action="Logout">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid admin-shell">
+        <div class="row g-0">
+
+            <aside id="sidebar" class="col-md-2 bg-light p-3 sidebar">
+                <h5 class="sidebar-title">Admin</h5>
+                <hr />
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="sidebar-link"
+                           asp-controller="Admin"
+                           asp-action="Dashboard">
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="sidebar-link"
+                           asp-controller="Admin"
+                           asp-action="SurveyReports">
+                            <span class="sidebar-text">Survey Reports</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="sidebar-link"
+                           asp-controller="Admin"
+                           asp-action="AnalyticsReports">
+                            <span class="sidebar-text">Analytics Reports</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="sidebar-link"
+                           asp-controller="Admin"
+                           asp-action="Complaints">
+                            <span class="sidebar-text">Complaints</span>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+            <main id="mainContent" class="col-md-10 p-4 main-content">
+                @RenderBody()
+            </main>
+
+        </div>
+    </div>
+
+    <script src="@Url.Content("~/lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById("toggleBtn");
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("mainContent");
+
+            if (toggleBtn && sidebar && mainContent) {
+                toggleBtn.addEventListener("click", function () {
+                    sidebar.classList.toggle("collapsed");
+                    mainContent.classList.toggle("expanded");
+                });
+            }
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

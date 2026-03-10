@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+<script src="~/js/survey.js"></script>
+
+<div class="text-center mt-5">
+    <h1 class="display-4">Welcome to Lipa City ARTA Portal</h1>
+    <p class="lead mt-3">
+        Your feedback helps us improve our services.
+    </p>
+</div>
+
+<div class="row mt-5 text-center">
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow p-4">
+            <h4>Client Satisfaction Survey</h4>
+            <p>
+                Answer our survey to evaluate the quality of service you received.
+            </p>
+            <a asp-controller="Public"
+               asp-action="Survey"
+               class="btn btn-primary">
+                Take Survey
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow p-4">
+            <h4>Submit a Complaint</h4>
+            <p>
+                Report concerns regarding any city office services.
+            </p>
+            <a asp-controller="Public"
+               asp-action="Complaint"
+               class="btn btn-danger">
+                Submit Complaint
+            </a>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,197 @@
+﻿@model LipaCityARTA.Models.Complaint
+
+@{
+    Layout = "~/Views/Shared/_SurveyLayout.cshtml";
+    ViewData["Title"] = "Complaint";
+}
+
+<link rel="stylesheet" href="@Url.Content("~/css/complaint.css")" />
+
+<div class="complaint-container">
+    <div class="complaint-card">
+
+        <h2 class="complaint-title">Submit a Complaint</h2>
+
+        <form asp-action="Complaint" method="post" class="complaint-form">
+            @Html.AntiForgeryToken()
+
+            <div class="complaint-form-group">
+                <label class="complaint-label">Office</label>
+
+                <div class="office-filter">
+                    <input type="text" id="officeSearch" class="complaint-search" placeholder="Search office..." />
+
+                    <select class="complaint-input" asp-for="Office" id="officeSelect" required>
+                        <option value="">-- Select Office --</option>
+                        <option>City Mayor's Office</option>
+                        <option>City Vice Mayor's Office</option>
+                        <option>City Treasurer's Office</option>
+                        <option>City Administrator</option>
+                        <option>City Legal Office</option>
+                        <option>City Assessor's Office</option>
+                        <option>City Accounting Office</option>
+                        <option>City Agriculture Office</option>
+                        <option>City Budget Office</option>
+                        <option>City Civil Registrar's Office</option>
+                        <option>City Community Affairs Office</option>
+                        <option>City Cooperatives Office</option>
+                        <option>City Disaster Risk Reduction and Management Office</option>
+                        <option>City Engineering Office</option>
+                        <option>City Environment and Natural Resources Office</option>
+                        <option>City General Services Office</option>
+                        <option>City Health Office</option>
+                        <option>City Hospital Systems Office</option>
+                        <option>City Permits and Licensing Office</option>
+                        <option>City Personnel Office</option>
+                        <option>City Planning and Development Office</option>
+                        <option>City Public Order and Safety Office</option>
+                        <option>City Social Welfare and Development Office</option>
+                        <option>City Traffic Management and Transportation Office</option>
+                        <option>City Veterinary Office</option>
+                        <option>City Sangguniang Panlungsod Office</option>
+                        <option>Kolehiyo ng Lungsod ng Lipa</option>
+                        <option>Ospital ng Lipa</option>
+                    </select>
+                </div>
+
+                <span asp-validation-for="Office" class="text-danger"></span>
+            </div>
+
+            <div class="complaint-form-group">
+                <label class="complaint-label">Client Type</label>
+
+                <div id="client-tags" class="complaint-tag-container">
+                    <button type="button" class="complaint-tag" data-value="Citizen">Citizen</button>
+                    <button type="button" class="complaint-tag" data-value="Business">Business</button>
+                    <button type="button" class="complaint-tag" data-value="Government">Government</button>
+                </div>
+
+                <input type="hidden" asp-for="ClientType" id="ClientType" />
+                <span asp-validation-for="ClientType" class="text-danger"></span>
+            </div>
+
+            <div class="complaint-form-group">
+                <label class="complaint-label">Reason / Issue</label>
+
+                <div id="complaint-tags" class="complaint-tag-container">
+                    <button type="button" class="complaint-tag" data-value="Service Delay">Service Delay</button>
+                    <button type="button" class="complaint-tag" data-value="Too many requirements">Too many requirements</button>
+                    <button type="button" class="complaint-tag" data-value="Presence of fixer">Presence of fixer</button>
+                    <button type="button" class="complaint-tag" data-value="Long waiting time">Long waiting time</button>
+                    <button type="button" class="complaint-tag" data-value="No visible Citizen's Charter">No visible Citizen's Charter</button>
+                    <button type="button" class="complaint-tag" data-value="Hidden or unclear fees">Hidden or unclear fees</button>
+                    <button type="button" class="complaint-tag" data-value="Poor staff accommodation">Poor staff accommodation</button>
+                    <button type="button" class="complaint-tag" data-value="System/online service issues">System/online service issues</button>
+                    <button type="button" class="complaint-tag" data-value="No Application updates">No Application updates</button>
+                    <button type="button" class="complaint-tag" data-value="Application rejected without assistance">Application rejected without assistance</button>
+                    <button type="button" class="complaint-tag" data-value="Too many signatures/approvals (red tape)">Too many signatures/approvals (red tape)</button>
+                    <button type="button" class="complaint-tag" data-value="Too many requirements">Too many requirements</button>
+                </div>
+
+                <input type="hidden" asp-for="Reason" id="TagInput" />
+                <span asp-validation-for="Reason" class="text-danger"></span>
+            </div>
+
+            <div class="complaint-form-group">
+                <label class="complaint-label" for="Message">Message</label>
+                <textarea id="Message"
+                          asp-for="Message"
+                          class="complaint-input complaint-textarea"
+                          placeholder="Type your message here..."
+                          required></textarea>
+                <span asp-validation-for="Message" class="text-danger"></span>
+            </div>
+
+            <div class="complaint-form-group">
+                <label class="complaint-label" for="Email">Email</label>
+                <input id="Email" class="complaint-input" asp-for="Email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="complaint-actions">
+
+                <a asp-controller="Public" asp-action="Choose" class="complaint-back-btn">
+                    Back
+                </a>
+
+                <button type="submit" class="complaint-submit-btn">
+                    Submit Complaint
+                </button>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // =========================
+            // Office search filter
+            // =========================
+            const searchInput = document.getElementById("officeSearch");
+            const select = document.getElementById("officeSelect");
+
+            if (searchInput && select) {
+                searchInput.addEventListener("keyup", function () {
+                    const filter = searchInput.value.toLowerCase();
+                    const options = select.options;
+
+                    for (let i = 0; i < options.length; i++) {
+                        const text = options[i].text.toLowerCase();
+
+                        if (text.includes(filter) || options[i].value === "") {
+                            options[i].style.display = "";
+                        } else {
+                            options[i].style.display = "none";
+                        }
+                    }
+                });
+            }
+
+            // =========================
+            // Reason / Issue tags
+            // =========================
+            const reasonTags = document.querySelectorAll("#complaint-tags .complaint-tag");
+            const reasonInput = document.getElementById("TagInput");
+
+            reasonTags.forEach(tag => {
+                tag.addEventListener("click", function () {
+                    this.classList.toggle("selected");
+
+                    const selectedReasons = Array.from(reasonTags)
+                        .filter(t => t.classList.contains("selected"))
+                        .map(t => t.dataset.value);
+
+                    reasonInput.value = selectedReasons.join(", ");
+                });
+            });
+
+            // =========================
+            // Client Type (single select only)
+            // =========================
+            const clientTags = document.querySelectorAll("#client-tags .complaint-tag");
+            const clientInput = document.getElementById("ClientType");
+
+            clientTags.forEach(tag => {
+                tag.addEventListener("click", function () {
+                    clientTags.forEach(t => t.classList.remove("selected"));
+                    this.classList.add("selected");
+                    clientInput.value = this.dataset.value;
+                });
+            });
+
+            // Default selected client type
+            if (clientInput) {
+                clientInput.value = "Citizen";
+                const defaultClientTag = document.querySelector('#client-tags .complaint-tag[data-value="Citizen"]');
+                if (defaultClientTag) {
+                    defaultClientTag.classList.add("selected");
+                }
+            }
+        });
+    </script>
+}

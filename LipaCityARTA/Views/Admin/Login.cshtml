@@ -1,0 +1,57 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Admin Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="@Url.Content("~/css/admin.css")" />
+</head>
+<body>
+
+    <div class="admin-login-page" style="background-image: url('@Url.Content("~/images/bg.png")');">
+
+        <header class="header">
+            <div class="header-left">
+                <img src="@Url.Content("~/images/logo.png")" alt="Lipa City Logo" class="logo" />
+
+                <div class="header-text">
+                    <h3>LIPA CITY</h3>
+                    <h4>Anti-Red Tape Authority</h4>
+                </div>
+            </div>
+        </header>
+
+        <main class="login-container">
+            <div class="login-card">
+                <h2>Admin Login</h2>
+
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="input-group">
+                        <input type="text" name="username" placeholder="Username" required />
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" name="password" placeholder="Password" required />
+                    </div>
+
+                    <button type="submit" class="login-btn">Login</button>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <p class="error-message">@ViewBag.Error</p>
+                    }
+                </form>
+            </div>
+        </main>
+
+    </div>
+
+</body>
+</html>

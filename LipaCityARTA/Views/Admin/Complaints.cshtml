@@ -1,0 +1,455 @@
+﻿@model LipaCityARTA.ViewModels.ComplaintListViewModel
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Complaints";
+
+    var pendingComplaints = Model.Complaints?
+        .Where(c => (c.Status ?? "Pending").Trim() == "Pending")
+        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+
+    var inProgressComplaints = Model.Complaints?
+        .Where(c =>
+            (c.Status ?? "").Trim() == "In Progress" ||
+            (c.Status ?? "").Trim() == "Overdue" ||
+            (c.Status ?? "").Trim() == "Escalated")
+        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+
+    var resolvedComplaints = Model.Complaints?
+        .Where(c => (c.Status ?? "").Trim() == "Resolved")
+        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+}
+
+<link rel="stylesheet" href="@Url.Content("~/css/admin-complaints.css")" />
+
+<div class="c-page">
+
+    <div class="c-topbar">
+        <div class="c-title">
+            <h2>Complaints Dashboard</h2>
+            <p>Track complaint volume, overdue cases, and recent submissions.</p>
+        </div>
+
+        <div class="c-filters">
+            <div class="c-pill">
+                <span>Search</span>
+                <input id="complaintSearch" placeholder="Office / email / keyword" />
+            </div>
+
+            <button class="c-btn" type="button" id="exportBtn">Export</button>
+        </div>
+    </div>
+
+    <div class="c-grid">
+        <div class="c-card">
+            <div class="c-card-h">
+                <h3>Current Complaints Stats</h3>
+                <small>updated today</small>
+            </div>
+
+            <div class="c-card-b">
+                <div class="c-statstrip">
+                    <div class="c-stat">
+                        <div class="c-label">Open</div>
+                        <div class="c-value c-open">@Model.OpenCount</div>
+                    </div>
+
+                    <div class="c-stat">
+                        <div class="c-label">Overdue</div>
+                        <div class="c-value c-overdue">@Model.OverdueCount</div>
+                    </div>
+
+                    <div class="c-stat">
+                        <div class="c-label">Unassigned</div>
+                        <div class="c-value">@Model.UnassignedCount</div>
+                    </div>
+                </div>
+
+                <div class="c-kpis">
+                    <div class="c-kpi">
+                        <div class="c-k-title">New Complaints</div>
+                        <div class="c-k-value">@Model.NewComplaints</div>
+                    </div>
+
+                    <div class="c-kpi">
+                        <div class="c-k-title">Resolved</div>
+                        <div class="c-k-value">@Model.ResolvedCount</div>
+                    </div>
+
+                    <div class="c-kpi">
+                        <div class="c-k-title">Backlog (avg)</div>
+                        <div class="c-k-value">@Model.BacklogAvg</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="c-board">
+
+        <!-- Pending -->
+        <div class="c-lane">
+            <div class="c-lane-head">
+                <h3>Pending</h3>
+                <span>@pendingComplaints.Count</span>
+            </div>
+
+            <div class="c-lane-body">
+                @if (pendingComplaints.Any())
+                {
+                    @foreach (var item in pendingComplaints)
+                    {
+                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
+                        ? item.Reason.Substring(0, 55) + "..."
+                        : item.Reason;
+
+                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
+                        ? item.Message.Substring(0, 70) + "..."
+                        : item.Message;
+
+                        <div class="c-ticket"
+                             data-office="@item.Office"
+                             data-clienttype="@item.ClientType"
+                             data-reason="@item.Reason"
+                             data-message="@item.Message"
+                             data-email="@item.Email"
+                             data-status="Pending"
+                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+
+                            <div class="c-ticket-top">
+                                <h4>@item.Office</h4>
+                                <span class="c-status c-st-pending">Pending</span>
+                            </div>
+
+                            <div class="c-ticket-meta">
+                                <span>@item.ClientType</span>
+                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Reason</label>
+                                <p title="@item.Reason">@shortReason</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Message</label>
+                                <p title="@item.Message">@shortMessage</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Email</label>
+                                <p>@item.Email</p>
+                            </div>
+
+                            <div class="c-ticket-actions">
+                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+
+                                <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="c-mini-btn" type="submit">Start</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="c-empty-lane">No pending complaints.</div>
+                }
+            </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="c-lane">
+            <div class="c-lane-head">
+                <h3>In Progress</h3>
+                <span>@inProgressComplaints.Count</span>
+            </div>
+
+            <div class="c-lane-body">
+                @if (inProgressComplaints.Any())
+                {
+                    @foreach (var item in inProgressComplaints)
+                    {
+                        var s = (item.Status ?? "In Progress").Trim();
+
+                        var statusClass =
+                        s == "Escalated" ? "c-st-escalated" :
+                        s == "Overdue" ? "c-st-overdue" :
+                                                "c-st-inprogress";
+
+                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
+                        ? item.Reason.Substring(0, 55) + "..."
+                        : item.Reason;
+
+                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
+                        ? item.Message.Substring(0, 70) + "..."
+                        : item.Message;
+
+                        <div class="c-ticket"
+                             data-office="@item.Office"
+                             data-clienttype="@item.ClientType"
+                             data-reason="@item.Reason"
+                             data-message="@item.Message"
+                             data-email="@item.Email"
+                             data-status="@s"
+                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+
+                            <div class="c-ticket-top">
+                                <h4>@item.Office</h4>
+                                <span class="c-status @statusClass">@s</span>
+                            </div>
+
+                            <div class="c-ticket-meta">
+                                <span>@item.ClientType</span>
+                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Reason</label>
+                                <p title="@item.Reason">@shortReason</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Message</label>
+                                <p title="@item.Message">@shortMessage</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Email</label>
+                                <p>@item.Email</p>
+                            </div>
+
+                            <div class="c-ticket-actions">
+                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+
+                                <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="c-mini-btn" type="submit">Resolve</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="c-empty-lane">No complaints in progress.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Resolved -->
+        <div class="c-lane">
+            <div class="c-lane-head">
+                <h3>Resolved</h3>
+                <span>@resolvedComplaints.Count</span>
+            </div>
+
+            <div class="c-lane-body">
+                @if (resolvedComplaints.Any())
+                {
+                    @foreach (var item in resolvedComplaints)
+                    {
+                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
+                        ? item.Reason.Substring(0, 55) + "..."
+                        : item.Reason;
+
+                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
+                        ? item.Message.Substring(0, 70) + "..."
+                        : item.Message;
+
+                        <div class="c-ticket"
+                             data-office="@item.Office"
+                             data-clienttype="@item.ClientType"
+                             data-reason="@item.Reason"
+                             data-message="@item.Message"
+                             data-email="@item.Email"
+                             data-status="Resolved"
+                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+
+                            <div class="c-ticket-top">
+                                <h4>@item.Office</h4>
+                                <span class="c-status c-st-resolved">Resolved</span>
+                            </div>
+
+                            <div class="c-ticket-meta">
+                                <span>@item.ClientType</span>
+                                <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Reason</label>
+                                <p title="@item.Reason">@shortReason</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Message</label>
+                                <p title="@item.Message">@shortMessage</p>
+                            </div>
+
+                            <div class="c-ticket-section">
+                                <label>Email</label>
+                                <p>@item.Email</p>
+                            </div>
+
+                            <div class="c-ticket-actions">
+                                <button type="button" class="c-view-btn js-view-complaint">View</button>
+                                <span class="c-done">Completed</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="c-empty-lane">No resolved complaints.</div>
+                }
+            </div>
+        </div>
+
+    </div>
+
+    <div id="complaintModal" class="c-modal">
+        <div class="c-modal-box">
+            <div class="c-modal-head">
+                <h3>Complaint Details</h3>
+                <button type="button" class="c-modal-close" id="closeComplaintModal">×</button>
+            </div>
+
+            <div class="c-modal-body">
+                <div class="c-modal-row"><strong>Office:</strong> <span id="mOffice"></span></div>
+                <div class="c-modal-row"><strong>Client Type:</strong> <span id="mClientType"></span></div>
+                <div class="c-modal-row"><strong>Email:</strong> <span id="mEmail"></span></div>
+                <div class="c-modal-row"><strong>Status:</strong> <span id="mStatus"></span></div>
+                <div class="c-modal-row"><strong>Date:</strong> <span id="mDate"></span></div>
+                <div class="c-modal-row"><strong>Reason / Issue:</strong><p id="mReason"></p></div>
+                <div class="c-modal-row"><strong>Message:</strong><p id="mMessage"></p></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const search = document.getElementById("complaintSearch");
+            const exportBtn = document.getElementById("exportBtn");
+            const modal = document.getElementById("complaintModal");
+            const closeModalBtn = document.getElementById("closeComplaintModal");
+
+            const mOffice = document.getElementById("mOffice");
+            const mClientType = document.getElementById("mClientType");
+            const mEmail = document.getElementById("mEmail");
+            const mStatus = document.getElementById("mStatus");
+            const mDate = document.getElementById("mDate");
+            const mReason = document.getElementById("mReason");
+            const mMessage = document.getElementById("mMessage");
+
+            function openComplaintModal(ticket) {
+                mOffice.textContent = ticket.dataset.office || "";
+                mClientType.textContent = ticket.dataset.clienttype || "";
+                mEmail.textContent = ticket.dataset.email || "";
+                mStatus.textContent = ticket.dataset.status || "";
+                mDate.textContent = ticket.dataset.date || "";
+                mReason.textContent = ticket.dataset.reason || "";
+                mMessage.textContent = ticket.dataset.message || "";
+                modal.style.display = "flex";
+            }
+
+            function closeComplaintModal() {
+                modal.style.display = "none";
+            }
+
+            document.querySelectorAll(".js-view-complaint").forEach(button => {
+                button.addEventListener("click", function () {
+                    const ticket = this.closest(".c-ticket");
+                    if (ticket) {
+                        openComplaintModal(ticket);
+                    }
+                });
+            });
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener("click", closeComplaintModal);
+            }
+
+            window.addEventListener("click", function (e) {
+                if (e.target === modal) {
+                    closeComplaintModal();
+                }
+            });
+
+            if (search) {
+                search.addEventListener("input", function () {
+                    const q = search.value.toLowerCase().trim();
+                    const tickets = document.querySelectorAll(".c-ticket");
+                    const lanes = document.querySelectorAll(".c-lane");
+
+                    tickets.forEach(ticket => {
+                        const text = ticket.innerText.toLowerCase();
+                        ticket.style.display = text.includes(q) ? "" : "none";
+                    });
+
+                    lanes.forEach(lane => {
+                        const visibleTickets = lane.querySelectorAll('.c-ticket[style=""], .c-ticket:not([style])');
+                        const emptyLane = lane.querySelector(".c-empty-lane");
+
+                        if (!lane.querySelector(".c-ticket")) {
+                            return;
+                        }
+
+                        if (visibleTickets.length === 0) {
+                            if (!lane.querySelector(".c-search-empty")) {
+                                const div = document.createElement("div");
+                                div.className = "c-empty-lane c-search-empty";
+                                div.textContent = "No matching complaints.";
+                                lane.querySelector(".c-lane-body").appendChild(div);
+                            }
+                        } else {
+                            const searchEmpty = lane.querySelector(".c-search-empty");
+                            if (searchEmpty) {
+                                searchEmpty.remove();
+                            }
+                        }
+
+                        if (emptyLane && lane.querySelector(".c-ticket")) {
+                            emptyLane.style.display = "none";
+                        }
+                    });
+                });
+            }
+
+            if (exportBtn) {
+                exportBtn.addEventListener("click", function () {
+                    const rows = [
+                        ["Office", "Client Type", "Reason", "Message", "Email", "Status", "Date"]
+                    ];
+
+                    document.querySelectorAll(".c-ticket").forEach(ticket => {
+                        rows.push([
+                            ticket.dataset.office || "",
+                            ticket.dataset.clienttype || "",
+                            ticket.dataset.reason || "",
+                            ticket.dataset.message || "",
+                            ticket.dataset.email || "",
+                            ticket.dataset.status || "",
+                            ticket.dataset.date || ""
+                        ]);
+                    });
+
+                    const csv = rows
+                        .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+                        .join("\n");
+
+                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = "complaints-board.csv";
+                    link.click();
+                });
+            }
+        });
+    </script>
+}

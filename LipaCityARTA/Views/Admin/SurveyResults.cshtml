@@ -1,0 +1,129 @@
+﻿@model List<LipaCityARTA.Models.SurveyResponse>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "SurveyResults";
+}
+
+<h2 class="mt-4 text-center">Survey Results</h2>
+
+<!-- Survey Table -->
+<table class="table table-bordered mt-3 table-sm">
+    <thead class="table-light">
+        <tr>
+            <th>Office</th>
+            <th>Age</th>
+            <th>Sex</th>
+            <th>Client Type</th>
+            <th>CC1</th>
+            <th>CC2</th>
+            <th>CC3</th>
+            <th>SQD0</th>
+            <th>SQD1</th>
+            <th>SQD2</th>
+            <th>SQD3</th>
+            <th>SQD4</th>
+            <th>SQD5</th>
+            <th>SQD6</th>
+            <th>SQD7</th>
+            <th>SQD8</th>
+            <th>Suggestions</th>
+            <th>Date Submitted</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.Office</td>
+                <td>@s.Age</td>
+                <td>@s.Sex</td>
+                <td>@s.ClientType</td>
+                <td>@s.CC1</td>
+                <td>@s.CC2</td>
+                <td>@s.CC3</td>
+                <td>@s.SQD0</td>
+                <td>@s.SQD1</td>
+                <td>@s.SQD2</td>
+                <td>@s.SQD3</td>
+                <td>@s.SQD4</td>
+                <td>@s.SQD5</td>
+                <td>@s.SQD6</td>
+                <td>@s.SQD7</td>
+                <td>@s.SQD8</td>
+                <td>@s.Suggestions</td>
+                <td>@s.DateSubmitted</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Charts Section -->
+<h3 class="mt-5 text-center">Survey Analytics</h3>
+<div class="row mt-3">
+    <div class="col-md-6">
+        <canvas id="avgSQDChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="officeCountChart"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Serialize survey data
+    const surveys = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model ?? new List<LipaCityARTA.Models.SurveyResponse>()));
+
+    // --- Average SQD Ratings (Bar Chart) ---
+    const sqdLabels = ["SQD0","SQD1","SQD2","SQD3","SQD4","SQD5","SQD6","SQD7","SQD8"];
+    const sqdAverages = [];
+    for (let i = 0; i < 9; i++) {
+        let sum = 0;
+        surveys.forEach(s => sum += s["SQD" + i]);
+        sqdAverages.push((sum / surveys.length).toFixed(2));
+    }
+    const ctx1 = document.getElementById('avgSQDChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: sqdLabels,
+            datasets: [{
+                label: 'Average SQD Ratings',
+                data: sqdAverages,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 5 } }
+        }
+    });
+
+    // --- Submissions Per Office (Pie Chart) ---
+    const officeCounts = {};
+    surveys.forEach(s => {
+        officeCounts[s.Office] = (officeCounts[s.Office] || 0) + 1;
+    });
+    const ctx2 = document.getElementById('officeCountChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(officeCounts),
+            datasets: [{
+                label: 'Submissions per Office',
+                data: Object.values(officeCounts),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)'
+                ]
+            }]
+        },
+        options: { responsive: true }
+    });
+</script>
+
+<a asp-action="Dashboard" class="btn btn-secondary mt-3">Back to Dashboard</a>

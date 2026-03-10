@@ -1,0 +1,264 @@
+﻿@model LipaCityARTA.ViewModels.DashboardViewModel
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<link rel="stylesheet" href="@Url.Content("~/css/admin-dashboard.css")" />
+
+<div class="dashboard-container">
+
+    <!-- KPI CARDS -->
+    <div class="dashboard-main">
+
+        <div class="dashboard-card">
+            <h3>Total Submissions</h3>
+            <p class="stat-number">@Model.TotalSubmissions</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Total Surveys</h3>
+            <p class="stat-number">@Model.TotalSurveys</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Total Complaints</h3>
+            <p class="stat-number">@Model.TotalComplaints</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Active Users</h3>
+            <p class="stat-number">@Model.ActiveUsers</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Pending Complaints</h3>
+            <p class="stat-number">@Model.PendingComplaints</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Most Active Office</h3>
+            <p class="stat-number">@Model.MostVisitedOffice</p>
+        </div>
+
+    </div>
+
+    <div class="card mt-4">
+        <h3 class="section-title">Survey Responses Breakdown by Office</h3>
+        <canvas id="officePieChart" style="height:360px; width:100%;"></canvas>
+    </div>
+
+    <div class="charts-grid mt-4">
+        <div class="card">
+            <h3 class="section-title">Average SQD Ratings</h3>
+            <canvas id="avgSQDChart" style="height:280px; width:100%;"></canvas>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Survey Submission Trend</h3>
+            <canvas id="trendChart" style="height:280px; width:100%;"></canvas>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <h3 class="section-title">Recent Complaints</h3>
+
+        @if (Model.RecentComplaints != null && Model.RecentComplaints.Any())
+        {
+            <ul class="recent-list">
+                @foreach (var complaint in Model.RecentComplaints)
+                {
+                    <li>
+                        <strong>@complaint.Reason</strong>
+                        <span>@complaint.DateSubmitted.ToString("MMM dd, yyyy")</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="no-data">No recent complaints.</p>
+        }
+    </div>
+
+</div>
+
+<script type="application/json" id="sqdJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvgSQDs ?? new double[9]))
+</script>
+
+<script type="application/json" id="trendLabelsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TrendDates ?? new List<string>()))
+</script>
+
+<script type="application/json" id="trendCountsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TrendCounts ?? new List<int>()))
+</script>
+
+<script type="application/json" id="officeLabelsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.OfficeBreakdown?.Select(o => o.Office).ToList() ?? new List<string>()
+        ))
+</script>
+
+<script type="application/json" id="officeCountsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.OfficeBreakdown?.Select(o => o.Count).ToList() ?? new List<int>()
+        ))
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof Chart === "undefined") {
+                console.error("Chart.js did not load.");
+                return;
+            }
+
+            const readJson = (id) => {
+                const el = document.getElementById(id);
+                return el ? JSON.parse(el.textContent) : [];
+            };
+
+            const sqdLabels = ["SQD0", "SQD1", "SQD2", "SQD3", "SQD4", "SQD5", "SQD6", "SQD7", "SQD8"];
+            const sqdAverages = readJson("sqdJson");
+            const trendLabels = readJson("trendLabelsJson");
+            const trendCounts = readJson("trendCountsJson");
+            const officeLabels = readJson("officeLabelsJson");
+            const officeCounts = readJson("officeCountsJson");
+
+            const avgEl = document.getElementById("avgSQDChart");
+            const trendEl = document.getElementById("trendChart");
+            const officeEl = document.getElementById("officePieChart");
+
+            if (!avgEl || !trendEl || !officeEl) return;
+
+            new Chart(avgEl, {
+                type: "bar",
+                data: {
+                    labels: sqdLabels,
+                    datasets: [{
+                        data: sqdAverages,
+                        backgroundColor: "rgba(124, 10, 2, 0.7)",
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5
+                        }
+                    }
+                }
+            });
+
+            new Chart(trendEl, {
+                type: "line",
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        data: trendCounts,
+                        borderColor: "#7C0A02",
+                        backgroundColor: "rgba(124, 10, 2, 0.12)",
+                        fill: true,
+                        tension: 0.35
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            const total = officeCounts.reduce((a, b) => a + b, 0);
+
+            if (!officeLabels.length || total === 0) {
+                const ctx = officeEl.getContext("2d");
+                ctx.font = "600 18px system-ui";
+                ctx.fillStyle = "#6b7280";
+                ctx.fillText("No office data available.", 20, 40);
+                return;
+            }
+
+            const palette = [
+                "#7C0A02", "#B91C1C", "#EF4444", "#F97316",
+                "#F59E0B", "#22C55E", "#06B6D4", "#3B82F6",
+                "#6366F1", "#8B5CF6", "#EC4899", "#14B8A6"
+            ];
+
+            const colors = officeLabels.map((_, i) => palette[i % palette.length]);
+
+            const centerTextPlugin = {
+                id: "centerTextPlugin",
+                afterDraw(chart) {
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta?.data?.length) return;
+
+                    const { ctx } = chart;
+                    const x = meta.data[0].x;
+                    const y = meta.data[0].y;
+
+                    ctx.save();
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+
+                    ctx.font = "600 12px system-ui";
+                    ctx.fillStyle = "#6b7280";
+                    ctx.fillText("TOTAL", x, y - 12);
+
+                    ctx.font = "800 24px system-ui";
+                    ctx.fillStyle = "#111827";
+                    ctx.fillText(String(total), x, y + 12);
+
+                    ctx.restore();
+                }
+            };
+
+            new Chart(officeEl, {
+                type: "doughnut",
+                data: {
+                    labels: officeLabels,
+                    datasets: [{
+                        data: officeCounts,
+                        backgroundColor: colors,
+                        borderColor: "#fff",
+                        borderWidth: 3,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "68%",
+                    plugins: {
+                        legend: {
+                            position: "right"
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    const val = ctx.raw || 0;
+                                    const pct = (val / total) * 100;
+                                    return ` ${ctx.label}: ${val} (${pct.toFixed(1)}%)`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,91 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choose</title>
+    <link rel="stylesheet" href="~/css/survey.css" />
+</head>
+
+<body>
+    <div class="welcome-container">
+        <header class="header">
+            <img src="~/images/logo.png" class="logo" />
+            <div class="header-text">
+                <h1>LIPA CITY</h1>
+                <p>Anti-Red Tape Authority</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card intro-card">
+                <h2>Welcome to LIPA CITY HALL ARTA!</h2>
+                <p class="justify-text">
+                    The Anti-Red Tape Act of 2007 is a Philippine law that aims to improve the delivery of government services by reducing bureaucratic delays and preventing corruption. It requires government offices to provide faster, more efficient, and transparent services to the public. ARTA helps ensure that processes are simple, clear, and fair for everyone.
+                </p>
+
+                <h3>Help Us Serve You Better!</h3>
+
+                <div class="button-group">
+                    <a href="@Url.Action("Surveys", "Public")" class="start-btn" id="surveyLink">
+                        Take a Survey
+                    </a>
+
+                    <a href="@Url.Action("Complaint", "Public")" class="start-btn" id="complaintLink">
+                        File a Complaint
+                    </a>
+                </div>
+            </div>
+
+            <div id="consentModal">
+                <div class="modal-content">
+
+                    <h2 class="modal-title">Privacy</h2>
+
+                    <p>
+                        The City Government of Lipa respects your privacy. Information collected in this
+                        Client Satisfaction Survey will be used to evaluate and improve government services.
+                    </p>
+
+                    <p>
+                        Your responses will remain confidential, securely stored, and accessible only to
+                        authorized personnel. Participation is voluntary and you may stop the survey at
+                        any time.
+                    </p>
+
+                    <p>
+                        This survey complies with the Data Privacy Act of 2012 (RA 10173).
+                    </p>
+
+                    <div class="consent-row">
+                        <input type="checkbox" id="consentCheckbox">
+                        <label for="consentCheckbox">I have read and agree</label>
+                    </div>
+
+                    <div class="modal-buttons">     
+                        <button id="agreeBtn" disabled>Proceed</button>
+                        <button id="cancelBtn">Cancel</button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>© 2026 ARTA – Lipa City Government</p>
+        </footer>
+
+        <img src="~/images/avatar.png"
+             class="avatar"
+             id="avatar"
+             alt="Help Desk Avatar"
+             title="Tap to replay voice">
+    </div>
+
+    <script src="~/js/survey.js"></script>
+</body>
+</html> 
