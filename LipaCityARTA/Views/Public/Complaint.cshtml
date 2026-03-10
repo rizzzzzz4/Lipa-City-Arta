@@ -19,8 +19,6 @@
                 <label class="complaint-label">Office</label>
 
                 <div class="office-filter">
-                    <input type="text" id="officeSearch" class="complaint-search" placeholder="Search office..." />
-
                     <select class="complaint-input" asp-for="Office" id="officeSelect" required>
                         <option value="">-- Select Office --</option>
                         <option>City Mayor's Office</option>
@@ -129,32 +127,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            // =========================
-            // Office search filter
-            // =========================
-            const searchInput = document.getElementById("officeSearch");
-            const select = document.getElementById("officeSelect");
-
-            if (searchInput && select) {
-                searchInput.addEventListener("keyup", function () {
-                    const filter = searchInput.value.toLowerCase();
-                    const options = select.options;
-
-                    for (let i = 0; i < options.length; i++) {
-                        const text = options[i].text.toLowerCase();
-
-                        if (text.includes(filter) || options[i].value === "") {
-                            options[i].style.display = "";
-                        } else {
-                            options[i].style.display = "none";
-                        }
-                    }
-                });
-            }
-
-            // =========================
-            // Reason / Issue tags
-            // =========================
             const reasonTags = document.querySelectorAll("#complaint-tags .complaint-tag");
             const reasonInput = document.getElementById("TagInput");
 
@@ -170,9 +142,6 @@
                 });
             });
 
-            // =========================
-            // Client Type (single select only)
-            // =========================
             const clientTags = document.querySelectorAll("#client-tags .complaint-tag");
             const clientInput = document.getElementById("ClientType");
 
@@ -184,7 +153,6 @@
                 });
             });
 
-            // Default selected client type
             if (clientInput) {
                 clientInput.value = "Citizen";
                 const defaultClientTag = document.querySelector('#client-tags .complaint-tag[data-value="Citizen"]');

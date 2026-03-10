@@ -22,7 +22,6 @@
             <div class="survey-form-group">
                 <label asp-for="Office">Choose Office</label>
                 <div class="office-filter">
-                    <input type="text" id="officeSearch" placeholder="Search office...">
                     <select asp-for="Office" id="officeSelect" class="survey-input">
                         <option value="0">-- Select Office --</option>
                         <option>City Mayor's Office</option>
@@ -269,6 +268,7 @@
             function setupTagSelector(containerId, inputId) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
+
                 const input = document.getElementById(inputId);
                 const tags = container.querySelectorAll(".tag");
 
@@ -278,7 +278,11 @@
                             t.style.display = "inline-block";
                             t.classList.remove("selected");
                         });
-                        tags.forEach(t => { if (t !== tag) t.style.display = "none"; });
+
+                        tags.forEach(t => {
+                            if (t !== tag) t.style.display = "none";
+                        });
+
                         tag.classList.add("selected");
                         input.value = tag.dataset.value;
                     });
@@ -288,18 +292,6 @@
             setupTagSelector("sex-tags", "Sex");
             setupTagSelector("client-tags", "ClientType");
 
-            const officeSelect = document.getElementById("officeSelect");
-            const officeSearch = document.getElementById("officeSearch");
-            const originalOptions = Array.from(officeSelect.options);
-
-            officeSearch.addEventListener("keyup", function () {
-                const filter = this.value.toLowerCase();
-                officeSelect.innerHTML = "";
-                originalOptions.forEach(option => {
-                    if (option.text.toLowerCase().includes(filter)) officeSelect.appendChild(option);
-                });
-            });
-
             document.querySelectorAll(".star-rating").forEach(rating => {
                 const stars = rating.querySelectorAll(".star");
                 const hiddenInput = rating.nextElementSibling;
@@ -307,23 +299,39 @@
                 stars.forEach((star, index) => {
                     star.addEventListener("click", () => {
                         hiddenInput.value = index + 1;
-                        stars.forEach((s, i) => s.classList.toggle("selected", i <= index));
+
+                        stars.forEach((s, i) => {
+                            s.classList.toggle("selected", i <= index);
+                        });
                     });
+
                     star.addEventListener("mouseover", () => {
-                        stars.forEach((s, i) => s.classList.toggle("hovered", i <= index));
+                        stars.forEach((s, i) => {
+                            s.classList.toggle("hovered", i <= index);
+                        });
                     });
+
                     star.addEventListener("mouseout", () => {
                         stars.forEach(s => s.classList.remove("hovered"));
                     });
                 });
             });
 
-            document.querySelector("form").addEventListener("submit", function(e) {
+            document.querySelector("form").addEventListener("submit", function (e) {
                 const sex = document.getElementById("Sex").value;
                 const client = document.getElementById("ClientType").value;
 
-                if (!sex) { alert("Please select Sex"); e.preventDefault(); return; }
-                if (!client) { alert("Please select Client Type"); e.preventDefault(); return; }
+                if (!sex) {
+                    alert("Please select Sex");
+                    e.preventDefault();
+                    return;
+                }
+
+                if (!client) {
+                    alert("Please select Client Type");
+                    e.preventDefault();
+                    return;
+                }
 
                 const starInputs = document.querySelectorAll(".star-rating + input[type='hidden']");
                 for (const input of starInputs) {
