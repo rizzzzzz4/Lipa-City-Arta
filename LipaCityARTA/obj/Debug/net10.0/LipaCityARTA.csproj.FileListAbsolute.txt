@@ -226,8 +226,9 @@ C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\m0qcxjzq2m-{
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ni37bfvt8w-{0}-pw96j5smr2-pw96j5smr2.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\f9dxrkc6px-{0}-kjk7337k37-kjk7337k37.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\jxj9uqo88z-{0}-6vftursupv-6vftursupv.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\2d6w2jgqmw-{0}-qnowmv7weo-qnowmv7weo.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-qqunp2gqmr-qqunp2gqmr.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\drssml2cus-{0}-eh2p66va4z-eh2p66va4z.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-x4lte9onsl-x4lte9onsl.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\LipaCityARTA.sourcelink.json
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-osinc2b5pu-osinc2b5pu.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\jxj9uqo88z-{0}-mh3hlz8vsj-mh3hlz8vsj.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\2d6w2jgqmw-{0}-ut7lzstjdc-ut7lzstjdc.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-6l43bqp2u8-6l43bqp2u8.gz

@@ -4,27 +4,28 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Complaints";
 
-    var pendingComplaints = Model.Complaints?
-        .Where(c => (c.Status ?? "Pending").Trim() == "Pending")
-        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+    var complaints = Model.Complaints ?? new List<LipaCityARTA.Models.Complaint>();
 
-    var inProgressComplaints = Model.Complaints?
+    var pendingComplaints = complaints
+        .Where(c => (c.Status ?? "Pending").Trim() == "Pending")
+        .ToList();
+
+    var inProgressComplaints = complaints
         .Where(c =>
             (c.Status ?? "").Trim() == "In Progress" ||
             (c.Status ?? "").Trim() == "Overdue" ||
             (c.Status ?? "").Trim() == "Escalated")
-        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+        .ToList();
 
-    var resolvedComplaints = Model.Complaints?
+    var resolvedComplaints = complaints
         .Where(c => (c.Status ?? "").Trim() == "Resolved")
-        .ToList() ?? new List<LipaCityARTA.Models.Complaint>();
+        .ToList();
 }
 
 <link rel="stylesheet" href="@Url.Content("~/css/admin-complaints.css")" />
 
 <div class="c-page">
 
-    <!-- HEADER -->
     <div class="c-header">
         <div class="c-header-text">
             <p class="c-eyebrow">Admin Operations</p>
@@ -37,27 +38,60 @@
         <div class="c-header-meta">
             <div class="c-meta-card">
                 <span>Board Summary</span>
-                <strong>@(Model.Complaints?.Count ?? 0) complaint records</strong>
+                <strong>@complaints.Count complaint records</strong>
             </div>
         </div>
     </div>
 
-    <!-- TOOLBAR -->
     <div class="c-toolbar-card">
         <div class="c-toolbar">
+
             <div class="c-search-wrap">
-                <label for="complaintSearch">Search Complaints</label>
-                <input id="complaintSearch" placeholder="Search by office, email, reason, or keyword" />
+                <label for="complaintSearch">Search</label>
+                <input id="complaintSearch" placeholder="Search complaints..." />
             </div>
 
-            <div class="c-toolbar-actions">
-                <button class="c-btn c-btn-secondary" type="button" id="clearSearchBtn">Clear</button>
-                <button class="c-btn c-btn-primary" type="button" id="exportBtn">Export CSV</button>
+            <div class="c-filter">
+                <label>Office</label>
+                <select id="filterOffice">
+                    <option value="">All</option>
+                    @foreach (var office in complaints
+                                        .Where(c => !string.IsNullOrWhiteSpace(c.Office))
+                                        .Select(c => c.Office)
+                                        .Distinct())
+                    {
+                        <option value="@office">@office</option>
+                    }
+                </select>
             </div>
+
+            <div class="c-filter">
+                <label>Client Type</label>
+                <select id="filterClient">
+                    <option value="">All</option>
+                    @foreach (var type in complaints
+                                        .Where(c => !string.IsNullOrWhiteSpace(c.ClientType))
+                                        .Select(c => c.ClientType)
+                                        .Distinct())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+            </div>
+
+            <div class="c-filter">
+                <label>From Date</label>
+                <input type="date" id="filterFromDate" />
+            </div>
+
+            <div class="c-filter">
+                <label>To Date</label>
+                <input type="date" id="filterToDate" />
+            </div>
+
         </div>
     </div>
 
-    <!-- KPI CARDS -->
     <div class="c-kpi-grid">
         <div class="c-kpi-card">
             <div class="c-k-title">Open</div>
@@ -121,7 +155,7 @@
                              data-message="@item.Message"
                              data-email="@item.Email"
                              data-status="Pending"
-                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
                             <div class="c-ticket-top">
                                 <div>
@@ -204,7 +238,7 @@
                              data-message="@item.Message"
                              data-email="@item.Email"
                              data-status="@s"
-                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
                             <div class="c-ticket-top">
                                 <div>
@@ -280,7 +314,7 @@
                              data-message="@item.Message"
                              data-email="@item.Email"
                              data-status="Resolved"
-                             data-date="@item.DateSubmitted.ToString("MMM dd, yyyy")">
+                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
                             <div class="c-ticket-top">
                                 <div>
@@ -349,15 +383,17 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const search = document.getElementById("complaintSearch");
-            const clearSearchBtn = document.getElementById("clearSearchBtn");
-            const exportBtn = document.getElementById("exportBtn");
+            const filterOffice = document.getElementById("filterOffice");
+            const filterClient = document.getElementById("filterClient");
+            const filterFromDate = document.getElementById("filterFromDate");
+            const filterToDate = document.getElementById("filterToDate");
+
             const modal = document.getElementById("complaintModal");
             const closeModalBtn = document.getElementById("closeComplaintModal");
 
             const mOffice = document.getElementById("mOffice");
             const mClientType = document.getElementById("mClientType");
             const mEmail = document.getElementById("mEmail");
-            const mStatus = document.getElementById("mStatus");
             const mDate = document.getElementById("mDate");
             const mReason = document.getElementById("mReason");
             const mMessage = document.getElementById("mMessage");
@@ -366,7 +402,6 @@
                 mOffice.textContent = ticket.dataset.office || "";
                 mClientType.textContent = ticket.dataset.clienttype || "";
                 mEmail.textContent = ticket.dataset.email || "";
-                mStatus.textContent = ticket.dataset.status || "";
                 mDate.textContent = ticket.dataset.date || "";
                 mReason.textContent = ticket.dataset.reason || "";
                 mMessage.textContent = ticket.dataset.message || "";
@@ -402,14 +437,31 @@
                 }
             });
 
-            function applySearch() {
-                const q = (search.value || "").toLowerCase().trim();
+            function applyFilters() {
+                const q = (search?.value || "").toLowerCase().trim();
+                const officeValue = (filterOffice?.value || "").toLowerCase().trim();
+                const clientValue = (filterClient?.value || "").toLowerCase().trim();
+                const fromDate = filterFromDate?.value || "";
+                const toDate = filterToDate?.value || "";
+
                 const tickets = document.querySelectorAll(".c-ticket");
                 const lanes = document.querySelectorAll(".c-lane");
 
                 tickets.forEach(ticket => {
                     const text = ticket.innerText.toLowerCase();
-                    ticket.style.display = text.includes(q) ? "" : "none";
+                    const office = (ticket.dataset.office || "").toLowerCase().trim();
+                    const client = (ticket.dataset.clienttype || "").toLowerCase().trim();
+                    const ticketDate = ticket.dataset.date || "";
+
+                    let visible = true;
+
+                    if (q && !text.includes(q)) visible = false;
+                    if (officeValue && office !== officeValue) visible = false;
+                    if (clientValue && client !== clientValue) visible = false;
+                    if (fromDate && ticketDate < fromDate) visible = false;
+                    if (toDate && ticketDate > toDate) visible = false;
+
+                    ticket.style.display = visible ? "" : "none";
                 });
 
                 lanes.forEach(lane => {
@@ -431,49 +483,11 @@
                 });
             }
 
-            if (search) {
-                search.addEventListener("input", applySearch);
-            }
-
-            if (clearSearchBtn) {
-                clearSearchBtn.addEventListener("click", function () {
-                    search.value = "";
-                    document.querySelectorAll(".c-ticket").forEach(ticket => {
-                        ticket.style.display = "";
-                    });
-                    document.querySelectorAll(".c-search-empty").forEach(el => el.remove());
-                });
-            }
-
-            if (exportBtn) {
-                exportBtn.addEventListener("click", function () {
-                    const rows = [
-                        ["Office", "Client Type", "Reason", "Message", "Email", "Status", "Date"]
-                    ];
-
-                    document.querySelectorAll(".c-ticket").forEach(ticket => {
-                        rows.push([
-                            ticket.dataset.office || "",
-                            ticket.dataset.clienttype || "",
-                            ticket.dataset.reason || "",
-                            ticket.dataset.message || "",
-                            ticket.dataset.email || "",
-                            ticket.dataset.status || "",
-                            ticket.dataset.date || ""
-                        ]);
-                    });
-
-                    const csv = rows
-                        .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
-                        .join("\n");
-
-                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = "complaints-board.csv";
-                    link.click();
-                });
-            }
+            if (search) search.addEventListener("input", applyFilters);
+            if (filterOffice) filterOffice.addEventListener("change", applyFilters);
+            if (filterClient) filterClient.addEventListener("change", applyFilters);
+            if (filterFromDate) filterFromDate.addEventListener("change", applyFilters);
+            if (filterToDate) filterToDate.addEventListener("change", applyFilters);
         });
     </script>
 }

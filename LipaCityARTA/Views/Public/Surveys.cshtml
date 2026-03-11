@@ -78,7 +78,7 @@
                 <div id="client-tags" class="tag-container">
                     <span class="tag" data-value="Citizen">Citizen</span>
                     <span class="tag" data-value="Business">Business</span>
-                    <span class="tag" data-value="Government">Government</span>
+                    <span class="tag" data-value="Government">Government (Employee or another agency)</span>
                 </div>
                 <input type="hidden" asp-for="ClientType" id="ClientType" />
                 <span asp-validation-for="ClientType" class="text-danger"></span>
@@ -143,7 +143,7 @@
             <h2>Service Quality Feedback</h2>
 
             <div class="survey-form-group">
-                <label>SQD0. I spent a reasonable amount of time for my transaction.</label>
+                <label>SQD0. I am satisfied with the service that I availed.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -155,7 +155,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD1. The office followed the transaction’s requirements.</label>
+                <label>SQD1. I spent a reasonable amount of time for my transaction.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -167,7 +167,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD2. The steps were easy and simple.</label>
+                <label>SQD2. The office followed the transaction's requirements and steps based on the information provided.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -179,7 +179,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD3. I easily found information about my transaction.</label>
+                <label>SQD3. The steps (including payment) I needed to do for my transaction were easy and simple.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -191,7 +191,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD4. I paid a reasonable amount of fees.</label>
+                <label>SQD4. I easily found information about my transaction from the office or its website.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -203,7 +203,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD5. The office was fair to everyone.</label>
+                <label>SQD5. I paid a reasonable amount of fees for my transaction.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -215,7 +215,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD6. I was treated courteously by the staff.</label>
+                <label>SQD6. I feel the office was fair to everyone, or <i>"walang palakasan</i>, during my transaction.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -227,7 +227,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD7. I got what I needed or denial was explained.</label>
+                <label>SQD7. I was treated courteously by the staff, and (if asked for help) the staff was healpful.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -239,7 +239,7 @@
             </div>
 
             <div class="survey-form-group">
-                <label>SQD8. Overall, I am satisfied with the service.</label>
+                <label>SQD8. I got what I needed form the government office, or (if denied) denial of request was sufficiently explained to me.</label>
                 <div class="star-rating">
                     @for (int i = 1; i <= 5; i++)
                     {

@@ -607,3 +607,25 @@
         align-items: flex-start;
     }
 }
+
+.c-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+    .c-filter label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    .c-filter select,
+    .c-filter input {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 13px;
+        background: #fff;
+        min-width: 100px;
+    }

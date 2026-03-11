@@ -228,9 +228,32 @@
                 <p class="sr-section-subtitle">Detailed table of all submitted survey responses.</p>
             </div>
 
-            <div class="sr-table-summary">
-                <span class="sr-muted">Top Client Type</span>
-                <strong id="topClientTypeText">@topClientType</strong>
+            <div class="sr-table-summary-grid">
+                <div class="sr-table-summary">
+                    <span class="sr-muted">Top Client Type</span>
+                    <strong id="topClientTypeText">@topClientType</strong>
+                </div>
+
+                <div class="sr-table-summary">
+                    <span class="sr-muted">Top Office</span>
+                    <strong id="topOfficeSummary">@topOffice</strong>
+                </div>
+
+                <div class="sr-table-summary">
+                    <span class="sr-muted">Visible Records</span>
+                    <strong id="tableVisibleCount">@total</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="sr-table-toolbar">
+            <div class="sr-table-search">
+                <label for="tableSearch">Quick Search</label>
+                <input type="text" id="tableSearch" placeholder="Search office, client type, suggestion, or date..." />
+            </div>
+
+            <div class="sr-table-toolbar-note">
+                <span id="filteredCount">Showing: @total / @total</span>
             </div>
         </div>
 
@@ -246,7 +269,7 @@
                         <th>CC1</th>
                         <th>CC2</th>
                         <th>CC3</th>
-                        <th>SQD0-SQD8</th>
+                        <th>SQD Summary</th>
                         <th>Suggestions</th>
                         <th>Date Submitted</th>
                     </tr>
@@ -264,6 +287,9 @@
 
                         var dateIso = s.DateSubmitted.ToString("yyyy-MM-dd");
 
+                        var sqdValues = new[] { s.SQD0, s.SQD1, s.SQD2, s.SQD3, s.SQD4, s.SQD5, s.SQD6, s.SQD7, s.SQD8 };
+                        var rowAvgSqd = sqdValues.Average();
+
                         <tr class="data-row"
                             data-office="@officeNorm"
                             data-sex="@sexNorm"
@@ -271,17 +297,46 @@
                             data-age="@s.Age"
                             data-date="@dateIso">
 
-                            <td>@s.Id</td>
-                            <td>@office</td>
+                            <td>
+                                <span class="sr-id-pill">#@s.Id</span>
+                            </td>
+
+                            <td>
+                                <div class="sr-office-cell">@office</div>
+                            </td>
+
                             <td>@s.Age</td>
-                            <td>@sex</td>
-                            <td>@clientType</td>
+
+                            <td>
+                                <span class="sr-chip @(sexNorm == "male" ? "sr-chip-blue" : sexNorm == "female" ? "sr-chip-pink" : "sr-chip-gray")">
+                                    @sex
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="sr-chip sr-chip-neutral">@clientType</span>
+                            </td>
+
                             <td>@s.CC1</td>
                             <td>@s.CC2</td>
                             <td>@s.CC3</td>
-                            <td>@s.SQD0, @s.SQD1, @s.SQD2, @s.SQD3, @s.SQD4, @s.SQD5, @s.SQD6, @s.SQD7, @s.SQD8</td>
-                            <td>@(string.IsNullOrWhiteSpace(s.Suggestions) ? "-" : s.Suggestions)</td>
-                            <td>@s.DateSubmitted.ToString("yy-MM-dd HH:mm")</td>
+
+                            <td>
+                                <div class="sr-sqd-block">
+                                    <strong>@rowAvgSqd.ToString("0.00")</strong>
+                                    <small>@s.SQD0, @s.SQD1, @s.SQD2, @s.SQD3, @s.SQD4, @s.SQD5, @s.SQD6, @s.SQD7, @s.SQD8</small>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="sr-suggestion-cell">
+                                    @(string.IsNullOrWhiteSpace(s.Suggestions) ? "—" : s.Suggestions)
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="sr-date-cell">@s.DateSubmitted.ToString("yy-MM-dd HH:mm")</div>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -306,6 +361,7 @@
             const fAgeMax = document.getElementById("fAgeMax");
             const fFrom = document.getElementById("fFrom");
             const fTo = document.getElementById("fTo");
+            const tableSearch = document.getElementById("tableSearch");
 
             const btnApply = document.getElementById("btnApply");
             const btnReset = document.getElementById("btnReset");
@@ -315,6 +371,8 @@
             const kpiOverallSQD = document.getElementById("kpiOverallSQD");
             const kpiTopOffice = document.getElementById("kpiTopOffice");
             const topClientTypeText = document.getElementById("topClientTypeText");
+            const tableVisibleCount = document.getElementById("tableVisibleCount");
+            const topOfficeSummary = document.getElementById("topOfficeSummary");
 
             const sqdLabels = ["SQD0", "SQD1", "SQD2", "SQD3", "SQD4", "SQD5", "SQD6", "SQD7", "SQD8"];
 
@@ -325,7 +383,10 @@
             }
 
             function parseSQDs(text) {
-                return text.split(",").map(x => parseFloat(x.trim()) || 0);
+                if (!text) return [];
+
+                const matches = text.match(/\d+(\.\d+)?/g);
+                return matches ? matches.map(x => parseFloat(x) || 0) : [];
             }
 
             function getVisibleRows() {
@@ -382,11 +443,12 @@
                     }
                 });
 
-                kpiTotal.textContent = total;
-                kpiAvgAge.textContent = avgAge.toFixed(1);
-                kpiOverallSQD.textContent = overallSQD.toFixed(2);
-                kpiTopOffice.textContent = topOffice;
-                topClientTypeText.textContent = topClientType;
+                if (kpiTotal) kpiTotal.textContent = total;
+                if (kpiAvgAge) kpiAvgAge.textContent = avgAge.toFixed(1);
+                if (kpiOverallSQD) kpiOverallSQD.textContent = overallSQD.toFixed(2);
+                if (kpiTopOffice) kpiTopOffice.textContent = topOffice;
+                if (topClientTypeText) topClientTypeText.textContent = topClientType;
+                if (topOfficeSummary) topOfficeSummary.textContent = topOffice;
             }
 
             function buildCharts(visibleRows) {
@@ -406,7 +468,7 @@
                     const sqdText = cells[8]?.innerText || "";
 
                     const sqds = parseSQDs(sqdText);
-                    if (sqds.length === 9) {
+                    if (sqds.length >= 9) {
                         for (let i = 0; i < 9; i++) {
                             sqdTotals[i] += sqds[i];
                         }
@@ -457,7 +519,10 @@
                         },
                         scales: {
                             x: { grid: { display: false } },
-                            y: { beginAtZero: true, suggestedMax: 5 }
+                            y: {
+                                beginAtZero: true,
+                                suggestedMax: 5
+                            }
                         }
                     }
                 });
@@ -523,21 +588,30 @@
 
             function refreshDashboard() {
                 const visibleRows = getVisibleRows();
-                filteredCountEl.textContent = `Showing: ${visibleRows.length} / ${rows.length}`;
+
+                if (filteredCountEl) {
+                    filteredCountEl.textContent = `Showing: ${visibleRows.length} / ${rows.length}`;
+                }
+
+                if (tableVisibleCount) {
+                    tableVisibleCount.textContent = visibleRows.length;
+                }
+
                 updateKPIs(visibleRows);
                 buildCharts(visibleRows);
             }
 
             function applyFilters() {
-                const officeVal = normalize(fOffice.value);
-                const sexVal = normalize(fSex.value);
-                const clientVal = normalize(fClientType.value);
+                const officeVal = normalize(fOffice?.value);
+                const sexVal = normalize(fSex?.value);
+                const clientVal = normalize(fClientType?.value);
+                const searchVal = normalize(tableSearch?.value);
 
-                const ageMin = fAgeMin.value ? parseInt(fAgeMin.value, 10) : null;
-                const ageMax = fAgeMax.value ? parseInt(fAgeMax.value, 10) : null;
+                const ageMin = fAgeMin?.value ? parseInt(fAgeMin.value, 10) : null;
+                const ageMax = fAgeMax?.value ? parseInt(fAgeMax.value, 10) : null;
 
-                const fromDate = fFrom.value ? new Date(fFrom.value + "T00:00:00") : null;
-                const toDate = fTo.value ? new Date(fTo.value + "T23:59:59") : null;
+                const fromDate = fFrom?.value ? new Date(fFrom.value + "T00:00:00") : null;
+                const toDate = fTo?.value ? new Date(fTo.value + "T23:59:59") : null;
 
                 rows.forEach(r => {
                     const rOffice = normalize(r.dataset.office);
@@ -547,6 +621,7 @@
 
                     const rDateStr = r.dataset.date || "";
                     const rDate = rDateStr ? new Date(rDateStr + "T12:00:00") : null;
+                    const rowText = normalize(r.innerText);
 
                     let ok = true;
 
@@ -565,6 +640,7 @@
                     if (ageMax !== null && rAge > ageMax) ok = false;
                     if (fromDate && rDate && rDate < fromDate) ok = false;
                     if (toDate && rDate && rDate > toDate) ok = false;
+                    if (searchVal && !rowText.includes(searchVal)) ok = false;
 
                     r.style.display = ok ? "" : "none";
                 });
@@ -573,20 +649,22 @@
             }
 
             function resetFilters() {
-                fOffice.value = "";
-                fSex.value = "";
-                fClientType.value = "";
-                fAgeMin.value = "";
-                fAgeMax.value = "";
-                fFrom.value = "";
-                fTo.value = "";
+                if (fOffice) fOffice.value = "";
+                if (fSex) fSex.value = "";
+                if (fClientType) fClientType.value = "";
+                if (fAgeMin) fAgeMin.value = "";
+                if (fAgeMax) fAgeMax.value = "";
+                if (fFrom) fFrom.value = "";
+                if (fTo) fTo.value = "";
+                if (tableSearch) tableSearch.value = "";
 
                 rows.forEach(r => r.style.display = "");
                 refreshDashboard();
             }
 
-            btnApply.addEventListener("click", applyFilters);
-            btnReset.addEventListener("click", resetFilters);
+            if (btnApply) btnApply.addEventListener("click", applyFilters);
+            if (btnReset) btnReset.addEventListener("click", resetFilters);
+            if (tableSearch) tableSearch.addEventListener("input", applyFilters);
 
             refreshDashboard();
         });
