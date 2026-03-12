@@ -18,6 +18,11 @@ namespace LipaCityARTA.Models
         {
             base.OnModelCreating(modelBuilder);
 
+            // Make TrackingId unique
+            modelBuilder.Entity<Complaint>()
+                .HasIndex(c => c.TrackingId)
+                .IsUnique();
+
             // Seed a default admin user
             modelBuilder.Entity<AdminUser>().HasData(
                 new AdminUser
@@ -25,7 +30,7 @@ namespace LipaCityARTA.Models
                     Id = 1,
                     Username = "admin",
                     Email = "admin@lipacityarta.local",
-                    Password = "admin123" // For testing only, plain text
+                    Password = "admin123"
                 }
             );
         }

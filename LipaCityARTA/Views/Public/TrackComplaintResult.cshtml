@@ -1,0 +1,53 @@
+﻿@model LipaCityARTA.Models.Complaint
+
+@{
+    Layout = "~/Views/Shared/_SurveyLayout.cshtml";
+    ViewData["Title"] = "Complaint Status";
+}
+
+<link rel="stylesheet" href="~/css/track-complaint.css" />
+
+<div class="track-page">
+    <div class="track-card">
+        <h1 class="track-title">Complaint Status</h1>
+        <p class="track-subtitle">Here is the current status of your complaint.</p>
+
+        <div class="result-box">
+            <div class="result-row">
+                <span class="result-label">Tracking ID</span>
+                <span class="result-value">@Model.TrackingId</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Office</span>
+                <span class="result-value">@Model.Office</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Client Type</span>
+                <span class="result-value">@Model.ClientType</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Reason</span>
+                <span class="result-value">@Model.Reason</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Status</span>
+                <span class="result-value status-badge">@Model.Status</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Date Submitted</span>
+                <span class="result-value">@Model.DateSubmitted.ToString("MMMM dd, yyyy hh:mm tt")</span>
+            </div>
+        </div>
+
+        <div class="track-actions">
+            <a asp-controller="Public" asp-action="TrackComplaint" class="track-btn secondary-btn">
+                Track Another Complaint
+            </a>
+        </div>
+    </div>
+</div>

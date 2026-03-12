@@ -49,15 +49,23 @@ namespace LipaCityARTA.Controllers
             return View();
         }
 
-
+        // ===============================
+        // Complaint Submit (POST)
+        // ===============================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Complaint(Complaint model)
         {
             if (ModelState.IsValid)
             {
+                model.TrackingId = GenerateTrackingId();
+                model.Status = "Pending";
+                model.DateSubmitted = DateTime.Now;
+
                 _context.Complaints.Add(model);
                 _context.SaveChanges();
+
+                TempData["TrackingId"] = model.TrackingId;   // IMPORTANT
 
                 return RedirectToAction("ThankYou");
             }
@@ -65,16 +73,46 @@ namespace LipaCityARTA.Controllers
             return View(model);
         }
 
+
         [HttpGet]
         public IActionResult ThankYou()
         {
             return View();
         }
 
-        public IActionResult Consent()
+        private string GenerateTrackingId()
+        {
+            return "ARTA-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+        }
+
+        [HttpGet]
+        public IActionResult TrackComplaint()
         {
             return View();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TrackComplaint(string trackingId)
+        {
+            if (string.IsNullOrWhiteSpace(trackingId))
+            {
+                ViewBag.Error = "Please enter your tracking ID.";
+                return View();
+            }
+
+            trackingId = trackingId.Trim();
+
+            var complaint = _context.Complaints
+                .FirstOrDefault(c => c.TrackingId == trackingId);
+
+            if (complaint == null)
+            {
+                ViewBag.Error = "Tracking ID not found.";
+                return View();
+            }
+
+            return View("TrackComplaintResult", complaint);
+        }
     }
 }
-

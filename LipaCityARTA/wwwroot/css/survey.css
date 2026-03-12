@@ -423,3 +423,45 @@ body {
         bottom: 0;
     }
 }
+
+.track-home-card {
+    margin-top: 40px;
+    background: rgba(255,255,255,0.9);
+    padding: 25px;
+    border-radius: 16px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+    .track-home-card h2 {
+        margin-bottom: 10px;
+    }
+
+.track-home-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.track-home-input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.track-home-btn {
+    background: #9d0b0f;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+    .track-home-btn:hover {
+        background: #7f090c;
+    }

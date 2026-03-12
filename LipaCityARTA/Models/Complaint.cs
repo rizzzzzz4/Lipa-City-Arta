@@ -30,5 +30,7 @@ namespace LipaCityARTA.Models
         public DateTime? ResolvedAt { get; set; }
 
         public int? AssignedToAdminUserId { get; set; }
+
+        public string TrackingId { get; set; } = string.Empty;
     }
 }

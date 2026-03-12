@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_SurveyLayout.cshtml";
+    ViewData["Title"] = "Track Complaint";
+}
+
+<link rel="stylesheet" href="~/css/track-complaint.css" />
+
+<div class="track-page">
+    <div class="track-card">
+        <h1 class="track-title">Track Your Complaint</h1>
+        <p class="track-subtitle">
+            Enter your complaint tracking ID to check the current status of your complaint.
+        </p>
+
+        <form asp-controller="Public" asp-action="TrackComplaint" method="post">
+
+            <div class="track-form-group">
+                <label class="track-label">Tracking ID</label>
+
+                <input type="text"
+                       name="trackingId"
+                       class="track-input"
+                       placeholder="Enter your tracking ID"
+                       required />
+            </div>
+
+            <button type="submit" class="track-btn">
+                Check Status
+            </button>
+
+        </form>
+    </div>
+</div>

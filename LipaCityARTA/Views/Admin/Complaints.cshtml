@@ -89,6 +89,10 @@
                 <input type="date" id="filterToDate" />
             </div>
 
+            <button id="generateReportBtn" class="c-export-btn">
+                Generate Report
+            </button>
+
         </div>
     </div>
 
@@ -124,238 +128,251 @@
         </div>
     </div>
 
-    <div class="c-board">
+    <div class="c-tabs-card">
+        <div class="c-tabs-header">
+            <button type="button" class="c-tab-btn active" data-tab="pendingTab">
+                Pending <span>@pendingComplaints.Count</span>
+            </button>
+            <button type="button" class="c-tab-btn" data-tab="progressTab">
+                In Progress <span>@inProgressComplaints.Count</span>
+            </button>
+            <button type="button" class="c-tab-btn" data-tab="resolvedTab">
+                Resolved <span>@resolvedComplaints.Count</span>
+            </button>
+        </div>
 
-        <div class="c-lane c-lane-pending">
-            <div class="c-lane-head">
+        <!-- Pending Tab -->
+        <div class="c-tab-panel active" id="pendingTab">
+            <div class="c-tab-panel-head c-tab-pending">
                 <div>
-                    <h3>Pending</h3>
+                    <h3>Pending Complaints</h3>
                     <p>Awaiting initial action</p>
                 </div>
-                <span>@pendingComplaints.Count</span>
             </div>
 
-            <div class="c-lane-body">
-                @if (pendingComplaints.Any())
-                {
-                    @foreach (var item in pendingComplaints)
-                    {
-                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
-                        ? item.Reason.Substring(0, 55) + "..."
-                        : item.Reason;
+            @if (pendingComplaints.Any())
+            {
+                <div class="c-table-wrap">
+                    <table class="c-main-table">
+                        <thead>
+                            <tr>
+                                <th>Tracking ID</th>
+                                <th>Office</th>
+                                <th>Client Type</th>
+                                <th>Reason</th>
+                                <th>Message</th>
+                                <th>Email</th>
+                                <th>Date Submitted</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in pendingComplaints)
+                            {
+                                var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
+                                ? item.Reason.Substring(0, 40) + "..."
+                                : item.Reason;
 
-                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
-                        ? item.Message.Substring(0, 70) + "..."
-                        : item.Message;
+                                var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
+                                ? item.Message.Substring(0, 50) + "..."
+                                : item.Message;
 
-                        <div class="c-ticket"
-                             data-office="@item.Office"
-                             data-clienttype="@item.ClientType"
-                             data-reason="@item.Reason"
-                             data-message="@item.Message"
-                             data-email="@item.Email"
-                             data-status="Pending"
-                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
+                                <tr class="c-ticket"
+                                    data-tabgroup="pending"
+                                    data-trackingid="@item.TrackingId"
+                                    data-office="@item.Office"
+                                    data-clienttype="@item.ClientType"
+                                    data-reason="@item.Reason"
+                                    data-message="@item.Message"
+                                    data-email="@item.Email"
+                                    data-status="Pending"
+                                    data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
-                            <div class="c-ticket-top">
-                                <div>
-                                    <h4>@item.Office</h4>
-                                    <div class="c-ticket-meta">
-                                        <span>@item.ClientType</span>
-                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                </div>
-                                <span class="c-status c-st-pending">Pending</span>
-                            </div>
+                                    <td><span class="c-track-id">@item.TrackingId</span></td>
+                                    <td>@item.Office</td>
+                                    <td>@item.ClientType</td>
+                                    <td title="@item.Reason">@shortReason</td>
+                                    <td title="@item.Message">@shortMessage</td>
+                                    <td>@item.Email</td>
+                                    <td>@item.DateSubmitted.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <div class="c-table-actions">
+                                            <button type="button" class="c-view-btn js-view-complaint">View</button>
 
-                            <div class="c-ticket-section">
-                                <label>Reason</label>
-                                <p title="@item.Reason">@shortReason</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Message</label>
-                                <p title="@item.Message">@shortMessage</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Email</label>
-                                <p>@item.Email</p>
-                            </div>
-
-                            <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
-
-                                <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@item.Id" />
-                                    <button class="c-mini-btn" type="submit">Start</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="c-empty-lane">No pending complaints.</div>
-                }
-            </div>
+                                            <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button class="c-mini-btn" type="submit">Start</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="c-empty-panel">No pending complaints.</div>
+            }
         </div>
 
-        <div class="c-lane c-lane-progress">
-            <div class="c-lane-head">
+        <!-- In Progress Tab -->
+        <div class="c-tab-panel" id="progressTab">
+            <div class="c-tab-panel-head c-tab-progress">
                 <div>
-                    <h3>In Progress</h3>
+                    <h3>In Progress Complaints</h3>
                     <p>Currently being handled</p>
                 </div>
-                <span>@inProgressComplaints.Count</span>
             </div>
 
-            <div class="c-lane-body">
-                @if (inProgressComplaints.Any())
-                {
-                    @foreach (var item in inProgressComplaints)
-                    {
-                        var s = (item.Status ?? "In Progress").Trim();
+            @if (inProgressComplaints.Any())
+            {
+                <div class="c-table-wrap">
+                    <table class="c-main-table">
+                        <thead>
+                            <tr>
+                                <th>Tracking ID</th>
+                                <th>Office</th>
+                                <th>Client Type</th>
+                                <th>Reason</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in inProgressComplaints)
+                            {
+                                var s = (item.Status ?? "In Progress").Trim();
 
-                        var statusClass =
-                        s == "Escalated" ? "c-st-escalated" :
-                        s == "Overdue" ? "c-st-overdue" :
-                                                "c-st-inprogress";
+                                var statusClass =
+                                s == "Escalated" ? "c-st-escalated" :
+                                s == "Overdue" ? "c-st-overdue" :
+                                                        "c-st-inprogress";
 
-                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
-                        ? item.Reason.Substring(0, 55) + "..."
-                        : item.Reason;
+                                var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
+                                ? item.Reason.Substring(0, 40) + "..."
+                                : item.Reason;
 
-                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
-                        ? item.Message.Substring(0, 70) + "..."
-                        : item.Message;
+                                var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
+                                ? item.Message.Substring(0, 50) + "..."
+                                : item.Message;
 
-                        <div class="c-ticket"
-                             data-office="@item.Office"
-                             data-clienttype="@item.ClientType"
-                             data-reason="@item.Reason"
-                             data-message="@item.Message"
-                             data-email="@item.Email"
-                             data-status="@s"
-                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
+                                <tr class="c-ticket"
+                                    data-tabgroup="progress"
+                                    data-trackingid="@item.TrackingId"
+                                    data-office="@item.Office"
+                                    data-clienttype="@item.ClientType"
+                                    data-reason="@item.Reason"
+                                    data-message="@item.Message"
+                                    data-email="@item.Email"
+                                    data-status="@s"
+                                    data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
-                            <div class="c-ticket-top">
-                                <div>
-                                    <h4>@item.Office</h4>
-                                    <div class="c-ticket-meta">
-                                        <span>@item.ClientType</span>
-                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                </div>
-                                <span class="c-status @statusClass">@s</span>
-                            </div>
+                                    <td><span class="c-track-id">@item.TrackingId</span></td>
+                                    <td>@item.Office</td>
+                                    <td>@item.ClientType</td>
+                                    <td title="@item.Reason">@shortReason</td>
+                                    <td title="@item.Message">@shortMessage</td>
+                                    <td><span class="c-status @statusClass">@s</span></td>
+                                    <td>@item.Email</td>
+                                    <td>
+                                        <div class="c-table-actions">
+                                            <button type="button" class="c-view-btn js-view-complaint">View</button>
 
-                            <div class="c-ticket-section">
-                                <label>Reason</label>
-                                <p title="@item.Reason">@shortReason</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Message</label>
-                                <p title="@item.Message">@shortMessage</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Email</label>
-                                <p>@item.Email</p>
-                            </div>
-
-                            <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
-
-                                <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@item.Id" />
-                                    <button class="c-mini-btn" type="submit">Resolve</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="c-empty-lane">No complaints in progress.</div>
-                }
-            </div>
+                                            <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button class="c-mini-btn" type="submit">Resolve</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="c-empty-panel">No complaints in progress.</div>
+            }
         </div>
 
-        <div class="c-lane c-lane-resolved">
-            <div class="c-lane-head">
+        <!-- Resolved Tab -->
+        <div class="c-tab-panel" id="resolvedTab">
+            <div class="c-tab-panel-head c-tab-resolved">
                 <div>
-                    <h3>Resolved</h3>
+                    <h3>Resolved Complaints</h3>
                     <p>Completed complaint cases</p>
                 </div>
-                <span>@resolvedComplaints.Count</span>
             </div>
 
-            <div class="c-lane-body">
-                @if (resolvedComplaints.Any())
-                {
-                    @foreach (var item in resolvedComplaints)
-                    {
-                        var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 55
-                        ? item.Reason.Substring(0, 55) + "..."
-                        : item.Reason;
+            @if (resolvedComplaints.Any())
+            {
+                <div class="c-table-wrap">
+                    <table class="c-main-table">
+                        <thead>
+                            <tr>
+                                <th>Tracking ID</th>
+                                <th>Office</th>
+                                <th>Client Type</th>
+                                <th>Reason</th>
+                                <th>Message</th>
+                                <th>Email</th>
+                                <th>Date Submitted</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in resolvedComplaints)
+                            {
+                                var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
+                                ? item.Reason.Substring(0, 40) + "..."
+                                : item.Reason;
 
-                        var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 70
-                        ? item.Message.Substring(0, 70) + "..."
-                        : item.Message;
+                                var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
+                                ? item.Message.Substring(0, 50) + "..."
+                                : item.Message;
 
-                        <div class="c-ticket"
-                             data-office="@item.Office"
-                             data-clienttype="@item.ClientType"
-                             data-reason="@item.Reason"
-                             data-message="@item.Message"
-                             data-email="@item.Email"
-                             data-status="Resolved"
-                             data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
+                                <tr class="c-ticket"
+                                    data-tabgroup="resolved"
+                                    data-trackingid="@item.TrackingId"
+                                    data-office="@item.Office"
+                                    data-clienttype="@item.ClientType"
+                                    data-reason="@item.Reason"
+                                    data-message="@item.Message"
+                                    data-email="@item.Email"
+                                    data-status="Resolved"
+                                    data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
-                            <div class="c-ticket-top">
-                                <div>
-                                    <h4>@item.Office</h4>
-                                    <div class="c-ticket-meta">
-                                        <span>@item.ClientType</span>
-                                        <span>@item.DateSubmitted.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                </div>
-                                <span class="c-status c-st-resolved">Resolved</span>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Reason</label>
-                                <p title="@item.Reason">@shortReason</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Message</label>
-                                <p title="@item.Message">@shortMessage</p>
-                            </div>
-
-                            <div class="c-ticket-section">
-                                <label>Email</label>
-                                <p>@item.Email</p>
-                            </div>
-
-                            <div class="c-ticket-actions">
-                                <button type="button" class="c-view-btn js-view-complaint">View Details</button>
-                                <span class="c-done">Completed</span>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="c-empty-lane">No resolved complaints.</div>
-                }
-            </div>
+                                    <td><span class="c-track-id">@item.TrackingId</span></td>
+                                    <td>@item.Office</td>
+                                    <td>@item.ClientType</td>
+                                    <td title="@item.Reason">@shortReason</td>
+                                    <td title="@item.Message">@shortMessage</td>
+                                    <td>@item.Email</td>
+                                    <td>@item.DateSubmitted.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <div class="c-table-actions">
+                                            <button type="button" class="c-view-btn js-view-complaint">View</button>
+                                            <span class="c-done">Done</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="c-empty-panel">No resolved complaints.</div>
+            }
         </div>
-
     </div>
 
     <div id="complaintModal" class="c-modal">
@@ -366,6 +383,7 @@
             </div>
 
             <div class="c-modal-body">
+                <div class="c-modal-row"><strong>Tracking ID:</strong> <span id="mTrackingId"></span></div>
                 <div class="c-modal-row"><strong>Office:</strong> <span id="mOffice"></span></div>
                 <div class="c-modal-row"><strong>Client Type:</strong> <span id="mClientType"></span></div>
                 <div class="c-modal-row"><strong>Email:</strong> <span id="mEmail"></span></div>
@@ -380,6 +398,9 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const search = document.getElementById("complaintSearch");
@@ -387,21 +408,29 @@
             const filterClient = document.getElementById("filterClient");
             const filterFromDate = document.getElementById("filterFromDate");
             const filterToDate = document.getElementById("filterToDate");
+            const generateReportBtn = document.getElementById("generateReportBtn");
+
+            const tabButtons = document.querySelectorAll(".c-tab-btn");
+            const tabPanels = document.querySelectorAll(".c-tab-panel");
 
             const modal = document.getElementById("complaintModal");
             const closeModalBtn = document.getElementById("closeComplaintModal");
 
+            const mTrackingId = document.getElementById("mTrackingId");
             const mOffice = document.getElementById("mOffice");
             const mClientType = document.getElementById("mClientType");
             const mEmail = document.getElementById("mEmail");
+            const mStatus = document.getElementById("mStatus");
             const mDate = document.getElementById("mDate");
             const mReason = document.getElementById("mReason");
             const mMessage = document.getElementById("mMessage");
 
             function openComplaintModal(ticket) {
+                mTrackingId.textContent = ticket.dataset.trackingid || "";
                 mOffice.textContent = ticket.dataset.office || "";
                 mClientType.textContent = ticket.dataset.clienttype || "";
                 mEmail.textContent = ticket.dataset.email || "";
+                mStatus.textContent = ticket.dataset.status || "";
                 mDate.textContent = ticket.dataset.date || "";
                 mReason.textContent = ticket.dataset.reason || "";
                 mMessage.textContent = ticket.dataset.message || "";
@@ -437,6 +466,20 @@
                 }
             });
 
+            tabButtons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const target = this.dataset.tab;
+
+                    tabButtons.forEach(b => b.classList.remove("active"));
+                    tabPanels.forEach(p => p.classList.remove("active"));
+
+                    this.classList.add("active");
+                    document.getElementById(target)?.classList.add("active");
+
+                    applyFilters();
+                });
+            });
+
             function applyFilters() {
                 const q = (search?.value || "").toLowerCase().trim();
                 const officeValue = (filterOffice?.value || "").toLowerCase().trim();
@@ -445,7 +488,7 @@
                 const toDate = filterToDate?.value || "";
 
                 const tickets = document.querySelectorAll(".c-ticket");
-                const lanes = document.querySelectorAll(".c-lane");
+                const panels = document.querySelectorAll(".c-tab-panel");
 
                 tickets.forEach(ticket => {
                     const text = ticket.innerText.toLowerCase();
@@ -464,23 +507,53 @@
                     ticket.style.display = visible ? "" : "none";
                 });
 
-                lanes.forEach(lane => {
-                    const laneBody = lane.querySelector(".c-lane-body");
-                    const allTickets = lane.querySelectorAll(".c-ticket");
+                panels.forEach(panel => {
+                    const allTickets = panel.querySelectorAll(".c-ticket");
                     const visibleTickets = Array.from(allTickets).filter(t => t.style.display !== "none");
-                    const searchEmpty = lane.querySelector(".c-search-empty");
+                    const emptySearch = panel.querySelector(".c-search-empty");
 
-                    if (searchEmpty) {
-                        searchEmpty.remove();
-                    }
+                    if (emptySearch) emptySearch.remove();
 
                     if (allTickets.length > 0 && visibleTickets.length === 0) {
                         const div = document.createElement("div");
-                        div.className = "c-empty-lane c-search-empty";
+                        div.className = "c-empty-panel c-search-empty";
                         div.textContent = "No matching complaints.";
-                        laneBody.appendChild(div);
+                        panel.appendChild(div);
                     }
                 });
+            }
+
+            async function loadImageAsBase64(url) {
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+
+                    return await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch {
+                    return null;
+                }
+            }
+
+            function formatPrettyDate(dateStr) {
+                if (!dateStr) return "Not specified";
+                const d = new Date(dateStr + "T00:00:00");
+                return d.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+            }
+
+            function formatDateRange(from, to) {
+                if (from && to) return `${formatPrettyDate(from)} - ${formatPrettyDate(to)}`;
+                if (from) return `From ${formatPrettyDate(from)}`;
+                if (to) return `Until ${formatPrettyDate(to)}`;
+                return "All Dates";
             }
 
             if (search) search.addEventListener("input", applyFilters);
@@ -488,6 +561,211 @@
             if (filterClient) filterClient.addEventListener("change", applyFilters);
             if (filterFromDate) filterFromDate.addEventListener("change", applyFilters);
             if (filterToDate) filterToDate.addEventListener("change", applyFilters);
+
+            if (generateReportBtn) {
+                        generateReportBtn.addEventListener("click", async function () {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF("l", "mm", "a4");
+
+            const activePanel = document.querySelector(".c-tab-panel.active");
+            if (!activePanel) {
+                alert("No active tab selected.");
+                return;
+            }
+
+            const visibleRows = Array.from(activePanel.querySelectorAll("tbody tr"))
+                .filter(row => row.style.display !== "none");
+
+            if (visibleRows.length === 0) {
+                alert("No visible complaint records to export.");
+                return;
+            }
+
+            const officeFilter = filterOffice?.value || "All Offices";
+            const from = filterFromDate?.value || "";
+            const to = filterToDate?.value || "";
+
+            const activeTabBtn = document.querySelector(".c-tab-btn.active");
+            const statusText = activeTabBtn
+                ? activeTabBtn.childNodes[0].textContent.trim()
+                : "All Statuses";
+
+            function shortenText(text, maxLength) {
+                if (!text) return "";
+                text = text.trim();
+                return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+            }
+
+            function formatPrettyDate(dateStr) {
+                if (!dateStr) return "Not specified";
+                const d = new Date(dateStr + "T00:00:00");
+                return d.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+            }
+
+            function formatDateRange(from, to) {
+                if (from && to) return `${formatPrettyDate(from)} - ${formatPrettyDate(to)}`;
+                if (from) return `From ${formatPrettyDate(from)}`;
+                if (to) return `Until ${formatPrettyDate(to)}`;
+                return "All Dates";
+            }
+
+            const tableData = visibleRows.map(row => [
+                row.dataset.trackingid || "",
+                row.dataset.date || "",
+                shortenText(row.dataset.office || "", 30),
+                shortenText(row.dataset.clienttype || "", 14),
+                shortenText(row.dataset.reason || "", 42),
+                shortenText(row.dataset.message || "", 40),
+                shortenText(row.dataset.email || "", 28)
+            ]);
+
+            const logoBase64 = await loadImageAsBase64("/images/logo.png");
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
+            // Header accent line
+            doc.setDrawColor(157, 11, 15);
+            doc.setLineWidth(1.2);
+            doc.line(12, 12, pageWidth - 12, 12);
+
+            // Logo
+            if (logoBase64) {
+                doc.addImage(logoBase64, "PNG", 14, 16, 20, 20);
+            }
+
+            // Header text
+            doc.setTextColor(20, 20, 20);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(20);
+            doc.text("Lipa City", 38, 24);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("Anti-Red Tape Authority", 38, 31);
+
+            // Report title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(15);
+            doc.text("COMPLAINT MONITORING REPORT", 14, 46);
+
+            // Subtitle
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text("Official summary of complaint records based on selected filters.", 14, 52);
+
+            // Meta box
+            doc.setDrawColor(210, 210, 210);
+            doc.setFillColor(248, 249, 251);
+            doc.roundedRect(14, 58, pageWidth - 28, 22, 2, 2, "FD");
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.text("Office:", 18, 66);
+            doc.text("Date Range:", 18, 73);
+            doc.text("Status:", 110, 66);
+            doc.text("Total Records:", 110, 73);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(officeFilter, 34, 66);
+            doc.text(formatDateRange(from, to), 40, 73);
+            doc.text(statusText, 126, 66);
+            doc.text(String(visibleRows.length), 136, 73);
+
+            // Table
+            doc.autoTable({
+                startY: 88,
+                head: [[
+                    "Tracking ID",
+                    "Date",
+                    "Office",
+                    "Client Type",
+                    "Reason",
+                    "Message",
+                    "Email"
+                ]],
+                body: tableData,
+                theme: "grid",
+                styles: {
+                    font: "helvetica",
+                    fontSize: 8,
+                    cellPadding: 3,
+                    overflow: "linebreak",
+                    valign: "top",
+                    textColor: [35, 35, 35],
+                    lineColor: [180, 180, 180],
+                    lineWidth: 0.15
+                },
+                headStyles: {
+                    fillColor: [157, 11, 15],
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold",
+                    halign: "left",
+                    valign: "middle",
+                    lineColor: [157, 11, 15],
+                    lineWidth: 0.2
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 248, 248]
+                },
+                columnStyles: {
+                    0: { cellWidth: 32 },
+                    1: { cellWidth: 22 },
+                    2: { cellWidth: 38 },
+                    3: { cellWidth: 24 },
+                    4: { cellWidth: 52 },
+                    5: { cellWidth: 42 },
+                    6: { cellWidth: 42 }
+                },
+                margin: {
+                    left: 14,
+                    right: 14
+                },
+                didDrawPage: function (data) {
+                    // Footer line
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+
+                    // Footer text
+                    doc.setFontSize(8);
+                    doc.setTextColor(90, 90, 90);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(
+                        `Generated on ${new Date().toLocaleString()}`,
+                        14,
+                        pageHeight - 7
+                    );
+
+                    doc.text(
+                        "Prepared by ARTA Admin System",
+                        pageWidth / 2,
+                        pageHeight - 7,
+                        { align: "center" }
+                    );
+
+                    const pageNumber = doc.getNumberOfPages();
+                    doc.text(
+                        `Page ${pageNumber}`,
+                        pageWidth - 14,
+                        pageHeight - 7,
+                        { align: "right" }
+                    );
+                }
+            });
+
+            const filenameDate = new Date().toISOString().slice(0, 10);
+            const safeStatus = statusText.replace(/\s+/g, "_");
+            doc.save(`ARTA_Complaint_Report_${safeStatus}_${filenameDate}.pdf`);
         });
+                        }
+                    });
+
     </script>
 }

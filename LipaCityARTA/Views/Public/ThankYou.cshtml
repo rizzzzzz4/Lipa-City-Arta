@@ -3,15 +3,50 @@
     ViewData["Title"] = "Thank You";
 }
 
-<div class="thank-you-container">
-    <div class="thank-you-card">
+<link rel="stylesheet" href="~/css/thank-you.css" />
 
-        <h2>Thank You So Much for your Time!</h2>
-        <p>Your feedback is very important to us and helps improve our services.</p>
+<div class="thankyou-container">
+    <div class="thankyou-card">
 
-        <a asp-controller="Public" asp-action="Choose" class="thank-you-btn">
-            Start New
-        </a>
+        <h1 class="thankyou-title">Maraming Salamat!</h1>
+
+        <p class="thankyou-message">
+            Thank you for taking the time to complete your complaint submission.
+            Your feedback helps the <strong>City Government of Lipa</strong>
+            improve service quality, transparency, and public service delivery.
+        </p>
+    
+        @if (TempData["TrackingId"] != null)
+        {
+            <div class="tracking-box">
+                <p class="tracking-label">Your Complaint Tracking ID</p>
+
+                <div class="tracking-id">
+                    @TempData["TrackingId"]
+                </div>
+
+                <p class="tracking-note">
+                    Save this ID carefully to track the status of your complaint.
+                </p>
+            </div>
+        }
+
+        <div class="thankyou-actions">
+            <a asp-controller="Public"
+               asp-action="Choose"
+               class="thankyou-btn thankyou-btn-secondary">
+                Back to Home Page
+            </a>
+        </div>
 
     </div>
 </div>
+
+<script>
+    function copyTrackingId() {
+        const trackingText = document.getElementById("trackingIdText").innerText;
+        navigator.clipboard.writeText(trackingText).then(function () {
+            alert("Tracking ID copied successfully.");
+        });
+    }
+</script>
