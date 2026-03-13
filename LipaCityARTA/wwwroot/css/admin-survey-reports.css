@@ -597,3 +597,12 @@
         grid-template-columns: 1fr;
     }
 }
+
+.c-export-btn {
+    border-radius: 10px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
