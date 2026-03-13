@@ -314,6 +314,20 @@ namespace LipaCityARTA.Controllers
 
             var list = q.OrderByDescending(c => c.DateSubmitted).ToList();
 
+            int overdueDays = 3;
+
+            foreach (var complaint in list)
+            {
+                var currentStatus = (complaint.Status ?? "Pending").Trim();
+
+                if (currentStatus != "Resolved" &&
+                    currentStatus != "Escalated" &&
+                    complaint.DateSubmitted <= DateTime.Now.AddDays(-overdueDays))
+                {
+                    complaint.Status = "Overdue";
+                }
+            }
+
             var vm = new ComplaintListViewModel
             {
                 Complaints = list,
@@ -325,18 +339,29 @@ namespace LipaCityARTA.Controllers
                 Search = search,
 
                 Total = list.Count,
-                Pending = list.Count(c => c.Status == "Pending"),
-                InProgress = list.Count(c => c.Status == "In Progress"),
-                Resolved = list.Count(c => c.Status == "Resolved"),
-                Escalated = list.Count(c => c.Status == "Escalated"),
 
-                OpenCount = list.Count(c => c.Status != "Resolved"),
-                OverdueCount = list.Count(c => c.Status == "Overdue"),
+                Pending = list.Count(c => (c.Status ?? "").Trim() == "Pending"),
+                InProgress = list.Count(c => (c.Status ?? "").Trim() == "In Progress"),
+                Resolved = list.Count(c => (c.Status ?? "").Trim() == "Resolved"),
+                Escalated = list.Count(c => (c.Status ?? "").Trim() == "Escalated"),
+
+                OpenCount = list.Count(c =>
+                    (c.Status ?? "").Trim() == "Pending" ||
+                    (c.Status ?? "").Trim() == "In Progress" ||
+                    (c.Status ?? "").Trim() == "Overdue" ||
+                    (c.Status ?? "").Trim() == "Escalated"),
+
+                OverdueCount = list.Count(c => (c.Status ?? "").Trim() == "Overdue"),
                 UnassignedCount = 0,
 
                 NewComplaints = list.Count(c => c.DateSubmitted >= DateTime.Today.AddDays(-7)),
-                ResolvedCount = list.Count(c => c.Status == "Resolved"),
-                BacklogAvg = list.Count(c => c.Status == "Pending" || c.Status == "In Progress" || c.Status == "Overdue" || c.Status == "Escalated"),
+                ResolvedCount = list.Count(c => (c.Status ?? "").Trim() == "Resolved"),
+
+                BacklogAvg = list.Count(c =>
+                    (c.Status ?? "").Trim() == "Pending" ||
+                    (c.Status ?? "").Trim() == "In Progress" ||
+                    (c.Status ?? "").Trim() == "Overdue" ||
+                    (c.Status ?? "").Trim() == "Escalated"),
 
                 ByOffice = list
                     .GroupBy(c => string.IsNullOrWhiteSpace(c.Office) ? "Unknown" : c.Office)

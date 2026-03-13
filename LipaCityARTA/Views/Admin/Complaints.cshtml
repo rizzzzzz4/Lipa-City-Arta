@@ -141,7 +141,6 @@
             </button>
         </div>
 
-        <!-- Pending Tab -->
         <div class="c-tab-panel active" id="pendingTab">
             <div class="c-tab-panel-head c-tab-pending">
                 <div>
@@ -202,7 +201,7 @@
                                             <form asp-controller="Admin" asp-action="AdvanceComplaintStatus" method="post" class="c-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button class="c-mini-btn" type="submit">Start</button>
+                                                <button class="c-start-btn" type="submit">Start</button>
                                             </form>
                                         </div>
                                     </td>

@@ -60,6 +60,20 @@
         box-shadow: 0 0 0 3px rgba(157, 11, 15, 0.12);
     }
 
+.back-btn {
+    display: inline-block;
+    border: none;
+    background: #fff;
+    color: #9d0b0f;
+    padding: 13px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
 .track-btn {
     display: inline-block;
     border: none;
@@ -79,11 +93,11 @@
     }
 
 .secondary-btn {
-    background: #1d4ed8;
+    background: #9d0b0f;
 }
 
     .secondary-btn:hover {
-        background: #1e40af;
+        background: #AEBFCA;
     }
 
 .track-error {
