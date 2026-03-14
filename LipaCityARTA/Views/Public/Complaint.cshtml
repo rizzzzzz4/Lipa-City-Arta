@@ -123,6 +123,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
+            // Reason / Issue tags (multiple select)
             const reasonTags = document.querySelectorAll("#complaint-tags .complaint-tag");
             const reasonInput = document.getElementById("TagInput");
 
@@ -147,7 +148,11 @@
                         e.preventDefault();
                         this.classList.toggle("selected");
                         updateReasonInput();
+                    }
+                });
+            });
 
+            // Client Type tags
             function setupClientTagSelector(containerId, inputId) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
@@ -155,27 +160,39 @@
                 const input = document.getElementById(inputId);
                 const tags = container.querySelectorAll(".complaint-tag");
 
+                function showAllTags() {
+                    tags.forEach(t => {
+                        t.style.display = "inline-flex";
+                        t.classList.remove("selected");
+                    });
+
+                    if (input) {
+                        input.value = "";
+                    }
+                }
+
                 tags.forEach(tag => {
+                    // Single click = select and hide others
                     tag.addEventListener("click", function () {
-
                         tags.forEach(t => {
-                            t.style.display = "inline-flex";
                             t.classList.remove("selected");
-                        });
-
-                        tags.forEach(t => {
-                            if (t !== tag) {
-                                t.style.display = "none";
-                            }
+                            t.style.display = "none";
                         });
 
                         tag.classList.add("selected");
+                        tag.style.display = "inline-flex";
 
                         if (input) {
                             input.value = tag.dataset.value;
                         }
                     });
 
+                    // Double click = reset and show all again
+                    tag.addEventListener("dblclick", function () {
+                        showAllTags();
+                    });
+
+                    // Keyboard support
                     tag.addEventListener("keydown", function (e) {
                         if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();

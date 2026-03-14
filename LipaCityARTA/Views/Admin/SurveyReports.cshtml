@@ -176,7 +176,7 @@
             </div>
 
             <div class="sr-count-wrap">
-                <span class="sr-badge" id="filteredCount">Showing: @total / @total</span>
+                <span class="sr-badge" id="filteredCountBadge">Showing: @total / @total</span>
             </div>
         </div>
     </div>
@@ -253,7 +253,7 @@
             </div>
 
             <div class="sr-table-toolbar-note">
-                <span id="filteredCount">Showing: @total / @total</span>
+                <span id="filteredCountText">Showing: @total / @total</span>
             </div>
         </div>
 
@@ -289,13 +289,15 @@
 
                         var sqdValues = new[] { s.SQD0, s.SQD1, s.SQD2, s.SQD3, s.SQD4, s.SQD5, s.SQD6, s.SQD7, s.SQD8 };
                         var rowAvgSqd = sqdValues.Average();
+                        var sqdCsv = string.Join(",", sqdValues);
 
                         <tr class="data-row"
                             data-office="@officeNorm"
                             data-sex="@sexNorm"
                             data-client="@clientNorm"
                             data-age="@s.Age"
-                            data-date="@dateIso">
+                            data-date="@dateIso"
+                            data-sqds="@sqdCsv">
 
                             <td>
                                 <span class="sr-id-pill">#@s.Id</span>
@@ -309,12 +311,14 @@
 
                             <td>
                                 <span class="sr-chip @(sexNorm == "male" ? "sr-chip-blue" : sexNorm == "female" ? "sr-chip-pink" : "sr-chip-gray")">
-                                    @sex
+                                    @(string.IsNullOrWhiteSpace(sex) ? "Unspecified" : sex)
                                 </span>
                             </td>
 
                             <td>
-                                <span class="sr-chip sr-chip-neutral">@clientType</span>
+                                <span class="sr-chip sr-chip-neutral">
+                                    @(string.IsNullOrWhiteSpace(clientType) ? "Unknown" : clientType)
+                                </span>
                             </td>
 
                             <td>@s.CC1</td>
@@ -324,7 +328,7 @@
                             <td>
                                 <div class="sr-sqd-block">
                                     <strong>@rowAvgSqd.ToString("0.00")</strong>
-                                    <small>@s.SQD0, @s.SQD1, @s.SQD2, @s.SQD3, @s.SQD4, @s.SQD5, @s.SQD6, @s.SQD7, @s.SQD8</small>
+                                    <small>@string.Join(", ", sqdValues)</small>
                                 </div>
                             </td>
 
@@ -335,7 +339,7 @@
                             </td>
 
                             <td>
-                                <div class="sr-date-cell">@s.DateSubmitted.ToString("yy-MM-dd HH:mm")</div>
+                                <div class="sr-date-cell">@s.DateSubmitted.ToString("yyyy-MM-dd HH:mm")</div>
                             </td>
                         </tr>
                     }
@@ -354,7 +358,9 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const rows = Array.from(document.querySelectorAll("#surveyTable tbody .data-row"));
-            const filteredCountEl = document.getElementById("filteredCount");
+
+            const filteredCountBadge = document.getElementById("filteredCountBadge");
+            const filteredCountText = document.getElementById("filteredCountText");
 
             const fOffice = document.getElementById("fOffice");
             const fSex = document.getElementById("fSex");
@@ -385,14 +391,16 @@
                 return (v || "").toString().trim().toLowerCase();
             }
 
-            function parseSQDs(text) {
-                if (!text) return [];
-                const matches = text.match(/\d+(\.\d+)?/g);
-                return matches ? matches.map(x => parseFloat(x) || 0) : [];
-            }
-
             function getVisibleRows() {
                 return rows.filter(r => r.style.display !== "none");
+            }
+
+            function parseRowSQDs(row) {
+                const raw = row.dataset.sqds || "";
+                return raw
+                    .split(",")
+                    .map(x => parseFloat(x))
+                    .filter(x => !isNaN(x));
             }
 
             function getDashboardSummary(visibleRows) {
@@ -411,8 +419,7 @@
                     const office = cells[1]?.innerText.trim() || "Unknown";
                     const age = parseInt(cells[2]?.innerText.trim() || "0", 10);
                     const clientType = cells[4]?.innerText.trim() || "Unknown";
-                    const sqdText = cells[8]?.innerText || "";
-                    const sqds = parseSQDs(sqdText);
+                    const sqds = parseRowSQDs(r);
 
                     ageTotal += age;
 
@@ -480,10 +487,9 @@
                     const office = cells[1]?.innerText.trim() || "Unknown";
                     const sex = normalize(cells[3]?.innerText);
                     const clientType = cells[4]?.innerText.trim() || "Unknown";
-                    const sqdText = cells[8]?.innerText || "";
+                    const sqds = parseRowSQDs(r);
 
-                    const sqds = parseSQDs(sqdText);
-                    if (sqds.length >= 9) {
+                    if (sqds.length === 9) {
                         for (let i = 0; i < 9; i++) {
                             sqdTotals[i] += sqds[i];
                         }
@@ -603,14 +609,11 @@
 
             function refreshDashboard() {
                 const visibleRows = getVisibleRows();
+                const text = `Showing: ${visibleRows.length} / ${rows.length}`;
 
-                if (filteredCountEl) {
-                    filteredCountEl.textContent = `Showing: ${visibleRows.length} / ${rows.length}`;
-                }
-
-                if (tableVisibleCount) {
-                    tableVisibleCount.textContent = visibleRows.length;
-                }
+                if (filteredCountBadge) filteredCountBadge.textContent = text;
+                if (filteredCountText) filteredCountText.textContent = text;
+                if (tableVisibleCount) tableVisibleCount.textContent = visibleRows.length;
 
                 updateKPIs(visibleRows);
                 buildCharts(visibleRows);
@@ -710,443 +713,403 @@
                 return "All Dates";
             }
 
-            function drawJustifiedText(doc, text, x, y, maxWidth, lineHeight) {
-                const words = text.split(/\s+/);
-                const lines = [];
-                let currentLine = "";
+            async function generateSurveyPdf() {
+                const visibleRows = getVisibleRows();
 
-                words.forEach(word => {
-                    const testLine = currentLine ? currentLine + " " + word : word;
-                    const testWidth = doc.getTextWidth(testLine);
-
-                    if (testWidth > maxWidth && currentLine) {
-                        lines.push(currentLine);
-                        currentLine = word;
-                    } else {
-                        currentLine = testLine;
-                    }
-                });
-
-                if (currentLine) {
-                    lines.push(currentLine);
+                if (visibleRows.length === 0) {
+                    alert("No visible survey records to export.");
+                    return;
                 }
 
-                lines.forEach((line, index) => {
-                    const isLastLine = index === lines.length - 1;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF("p", "mm", "a4");
 
-                    if (isLastLine) {
-                        doc.text(line, x, y);
-                    } else {
-                        const lineWords = line.split(" ");
+                const logoBase64 = await loadImageAsBase64("/images/logo.png");
+                const summary = getDashboardSummary(visibleRows);
 
-                        if (lineWords.length === 1) {
-                            doc.text(line, x, y);
-                        } else {
-                            const lineWithoutSpaces = lineWords.join("");
-                            const wordsWidth = doc.getTextWidth(lineWithoutSpaces);
-                            const totalSpace = maxWidth - wordsWidth;
-                            const spaceCount = lineWords.length - 1;
-                            const spaceWidth = totalSpace / spaceCount;
+                const officeValue = fOffice?.value || "All Offices";
+                const sexValue = fSex?.value || "All";
+                const clientTypeValue = fClientType?.value || "All";
+                const dateRangeText = formatDateRange(fFrom?.value || "", fTo?.value || "");
 
-                            let cursorX = x;
-                            lineWords.forEach((word, i) => {
-                                doc.text(word, cursorX, y);
-                                if (i < spaceCount) {
-                                    cursorX += doc.getTextWidth(word) + spaceWidth;
-                                }
-                            });
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                function shortenText(text, maxLength = 22) {
+                    const value = String(text || "N/A").trim();
+                    return value.length > maxLength ? value.substring(0, maxLength) + "..." : value;
+                }
+
+                function addHeader(title, subtitle = "") {
+                    doc.setFillColor(124, 10, 2);
+                    doc.rect(0, 0, pageWidth, 22, "F");
+
+                    if (logoBase64) {
+                        doc.addImage(logoBase64, "PNG", 12, 4, 13, 13);
+                    }
+
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(15);
+                    doc.text(title, 30, 11);
+
+                    if (subtitle) {
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(8.5);
+                        doc.text(subtitle, 30, 16);
+                    }
+
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                function addFooter(pageNo) {
+                    doc.setDrawColor(210, 210, 210);
+                    doc.setLineWidth(0.2);
+                    doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8);
+                    doc.setTextColor(90, 90, 90);
+                    doc.text(`Generated on ${new Date().toLocaleString()}`, 14, pageHeight - 7);
+                    doc.text(`Page ${pageNo}`, pageWidth - 14, pageHeight - 7, { align: "right" });
+
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                function addSectionTitle(text, y) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(12.5);
+                    doc.setTextColor(124, 10, 2);
+                    doc.text(text, 14, y);
+
+                    doc.setDrawColor(124, 10, 2);
+                    doc.setLineWidth(0.35);
+                    doc.line(14, y + 2, 72, y + 2);
+
+                    doc.setTextColor(0, 0, 0);
+                    return y + 8;
+                }
+
+                function addParagraph(text, y, maxWidth = 182) {
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    const lines = doc.splitTextToSize(text, maxWidth);
+                    doc.text(lines, 14, y);
+                    return y + lines.length * 5;
+                }
+
+                function drawInfoRow(label, value, x, y, labelWidth = 42) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(9.5);
+                    doc.text(label, x, y);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.text(String(value), x + labelWidth, y);
+                }
+
+                function getSexBreakdown(rows) {
+                    let male = 0, female = 0, other = 0;
+
+                    rows.forEach(r => {
+                        const sex = normalize(r.dataset.sex);
+                        if (sex === "male") male++;
+                        else if (sex === "female") female++;
+                        else other++;
+                    });
+
+                    const total = rows.length || 1;
+
+                    return {
+                        male,
+                        female,
+                        other,
+                        malePct: ((male / total) * 100).toFixed(1),
+                        femalePct: ((female / total) * 100).toFixed(1),
+                        otherPct: ((other / total) * 100).toFixed(1)
+                    };
+                }
+
+                function getSQDAverages(rows) {
+                    const totals = Array(9).fill(0);
+                    let count = 0;
+
+                    rows.forEach(r => {
+                        const sqds = parseRowSQDs(r);
+
+                        if (sqds.length === 9) {
+                            for (let i = 0; i < 9; i++) {
+                                totals[i] += sqds[i];
+                            }
+                            count++;
                         }
-                    }
+                    });
 
-                    y += lineHeight;
-                });
-
-                return y;
-            }
-
-        async function generateSurveyPdf() {
-            const visibleRows = getVisibleRows();
-
-            if (visibleRows.length === 0) {
-                alert("No visible survey records to export.");
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF("p", "mm", "a4");
-
-            const logoBase64 = await loadImageAsBase64("/images/logo.png");
-            const summary = getDashboardSummary(visibleRows);
-
-            const officeValue = fOffice?.value || "All Offices";
-            const sexValue = fSex?.value || "All";
-            const clientTypeValue = fClientType?.value || "All";
-            const dateRangeText = formatDateRange(fFrom?.value || "", fTo?.value || "");
-
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-
-            function addHeader(title, subtitle = "") {
-                doc.setFillColor(124, 10, 2);
-                doc.rect(0, 0, pageWidth, 22, "F");
-
-                if (logoBase64) {
-                    doc.addImage(logoBase64, "PNG", 12, 4, 13, 13);
+                    return totals.map(v => count > 0 ? v / count : 0);
                 }
 
-                doc.setTextColor(255, 255, 255);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(15);
-                doc.text(title, 30, 11);
+                function getTopItems(rows, cellIndex) {
+                    const map = {};
 
-                if (subtitle) {
+                    rows.forEach(r => {
+                        const value = r.querySelectorAll("td")[cellIndex]?.innerText.trim() || "Unknown";
+                        map[value] = (map[value] || 0) + 1;
+                    });
+
+                    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+                }
+
+                function getTopSuggestions(rows, limit = 3) {
+                    return rows
+                        .map(r => r.querySelectorAll("td")[9]?.innerText.trim() || "")
+                        .filter(x => x && x !== "—")
+                        .slice(0, limit);
+                }
+
+                function addKpiCard(x, y, w, h, label, value, sub = "") {
+                    doc.setFillColor(248, 248, 248);
+                    doc.setDrawColor(225, 225, 225);
+                    doc.roundedRect(x, y, w, h, 3, 3, "FD");
+
                     doc.setFont("helvetica", "normal");
                     doc.setFontSize(8.5);
-                    doc.text(subtitle, 30, 16);
-                }
+                    doc.setTextColor(90, 90, 90);
+                    doc.text(label, x + 4, y + 7);
 
-                doc.setTextColor(0, 0, 0);
-            }
+                    const valueText = String(value || "N/A");
+                    const maxValueWidth = w - 8;
 
-            function addFooter(pageNo) {
-                doc.setDrawColor(210, 210, 210);
-                doc.setLineWidth(0.2);
-                doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+                    let valueFontSize = 15;
+                    if (valueText.length > 18) valueFontSize = 11;
+                    if (valueText.length > 28) valueFontSize = 9.5;
 
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(8);
-                doc.setTextColor(90, 90, 90);
-                doc.text(`Generated on ${new Date().toLocaleString()}`, 14, pageHeight - 7);
-                doc.text(`Page ${pageNo}`, pageWidth - 14, pageHeight - 7, { align: "right" });
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(valueFontSize);
+                    doc.setTextColor(124, 10, 2);
 
-                doc.setTextColor(0, 0, 0);
-            }
+                    const valueLines = doc.splitTextToSize(valueText, maxValueWidth);
+                    doc.text(valueLines, x + 4, y + 16);
 
-            function addSectionTitle(text, y) {
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(12.5);
-                doc.setTextColor(124, 10, 2);
-                doc.text(text, 14, y);
+                    if (sub) {
+                        const valueBlockHeight = valueLines.length * 4.2;
 
-                doc.setDrawColor(124, 10, 2);
-                doc.setLineWidth(0.35);
-                doc.line(14, y + 2, 72, y + 2);
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(100, 100, 100);
 
-                doc.setTextColor(0, 0, 0);
-                return y + 8;
-            }
-
-            function addParagraph(text, y, maxWidth = 182) {
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                const lines = doc.splitTextToSize(text, maxWidth);
-                doc.text(lines, 14, y);
-                return y + lines.length * 5;
-            }
-
-            function drawInfoRow(label, value, x, y, labelWidth = 42) {
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(9.5);
-                doc.text(label, x, y);
-
-                doc.setFont("helvetica", "normal");
-                doc.text(String(value), x + labelWidth, y);
-            }
-
-            function getSexBreakdown(rows) {
-                let male = 0, female = 0, other = 0;
-
-                rows.forEach(r => {
-                    const sex = normalize(r.dataset.sex);
-                    if (sex === "male") male++;
-                    else if (sex === "female") female++;
-                    else other++;
-                });
-
-                const total = rows.length || 1;
-
-                return {
-                    male,
-                    female,
-                    other,
-                    malePct: ((male / total) * 100).toFixed(1),
-                    femalePct: ((female / total) * 100).toFixed(1),
-                    otherPct: ((other / total) * 100).toFixed(1)
-                };
-            }
-
-            function getSQDAverages(rows) {
-                const totals = Array(9).fill(0);
-                let count = 0;
-
-                rows.forEach(r => {
-                    const sqdText = r.querySelectorAll("td")[8]?.innerText || "";
-                    const sqds = parseSQDs(sqdText);
-
-                    if (sqds.length >= 9) {
-                        for (let i = 0; i < 9; i++) {
-                            totals[i] += sqds[i];
-                        }
-                        count++;
+                        const subLines = doc.splitTextToSize(sub, w - 8);
+                        doc.text(subLines, x + 4, y + 16 + valueBlockHeight + 3);
                     }
-                });
 
-                return totals.map(v => count > 0 ? v / count : 0);
-            }
-
-            function getTopItems(rows, cellIndex) {
-                const map = {};
-
-                rows.forEach(r => {
-                    const value = r.querySelectorAll("td")[cellIndex]?.innerText.trim() || "Unknown";
-                    map[value] = (map[value] || 0) + 1;
-                });
-
-                return Object.entries(map).sort((a, b) => b[1] - a[1]);
-            }
-
-            function getTopSuggestions(rows, limit = 3) {
-                return rows
-                    .map(r => r.querySelectorAll("td")[9]?.innerText.trim() || "")
-                    .filter(x => x && x !== "—")
-                    .slice(0, limit);
-            }
-
-            function addKpiCard(x, y, w, h, label, value, sub = "") {
-                doc.setFillColor(248, 248, 248);
-                doc.setDrawColor(225, 225, 225);
-                doc.roundedRect(x, y, w, h, 3, 3, "FD");
-
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(8.5);
-                doc.setTextColor(90, 90, 90);
-                doc.text(label, x + 4, y + 7);
-
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(15);
-                doc.setTextColor(124, 10, 2);
-                doc.text(String(value), x + 4, y + 16);
-
-                if (sub) {
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(7.5);
-                    doc.setTextColor(100, 100, 100);
-                    const lines = doc.splitTextToSize(sub, w - 8);
-                    doc.text(lines, x + 4, y + 23);
+                    doc.setTextColor(0, 0, 0);
                 }
 
-                doc.setTextColor(0, 0, 0);
-            }
+                const sexStats = getSexBreakdown(visibleRows);
+                const sqdAvg = getSQDAverages(visibleRows);
+                const topOffices = getTopItems(visibleRows, 1);
+                const topClientTypes = getTopItems(visibleRows, 4);
+                const topSuggestions = getTopSuggestions(visibleRows, 3);
 
-            const sexStats = getSexBreakdown(visibleRows);
-            const sqdAvg = getSQDAverages(visibleRows);
-            const topOffices = getTopItems(visibleRows, 1);
-            const topClientTypes = getTopItems(visibleRows, 4);
-            const topSuggestions = getTopSuggestions(visibleRows, 3);
+                const highestSQD = sqdAvg
+                    .map((v, i) => ({ label: `SQD${i}`, value: v }))
+                    .sort((a, b) => b.value - a.value)[0];
 
-            const highestSQD = sqdAvg
-                .map((v, i) => ({ label: `SQD${i}`, value: v }))
-                .sort((a, b) => b.value - a.value)[0];
+                const lowestSQD = sqdAvg
+                    .map((v, i) => ({ label: `SQD${i}`, value: v }))
+                    .sort((a, b) => a.value - b.value)[0];
 
-            const lowestSQD = sqdAvg
-                .map((v, i) => ({ label: `SQD${i}`, value: v }))
-                .sort((a, b) => a.value - b.value)[0];
+                addHeader("Survey Results Report", "Lipa City Anti-Red Tape Authority");
 
-            // PAGE 1
-            addHeader("Survey Results Report", "Lipa City Anti-Red Tape Authority");
+                let y = 32;
 
-            let y = 32;
+                y = addSectionTitle("Report Overview", y);
 
-            y = addSectionTitle("Report Overview", y);
+                const overviewText =
+                    `This report presents a summary of survey responses collected through the system based on the selected filters. ` +
+                    `It highlights respondent volume, service quality performance, and key response patterns to support administrative review and service improvement.`;
 
-            const overviewText =
-                `This report presents a summary of survey responses collected through the system based on the selected filters. ` +
-                `It highlights respondent volume, service quality performance, and key response patterns to support administrative review and service improvement.`;
+                y = addParagraph(overviewText, y);
+                y += 4;
 
-            y = addParagraph(overviewText, y);
-            y += 4;
+                drawInfoRow("Office Scope:", officeValue, 14, y); y += 6;
+                drawInfoRow("Sex Filter:", sexValue, 14, y); y += 6;
+                drawInfoRow("Client Type:", clientTypeValue, 14, y); y += 6;
+                drawInfoRow("Date Coverage:", dateRangeText, 14, y); y += 10;
 
-            drawInfoRow("Office Scope:", officeValue, 14, y); y += 6;
-            drawInfoRow("Sex Filter:", sexValue, 14, y); y += 6;
-            drawInfoRow("Client Type:", clientTypeValue, 14, y); y += 6;
-            drawInfoRow("Date Coverage:", dateRangeText, 14, y); y += 10;
+                y = addSectionTitle("Key Metrics", y);
 
-            y = addSectionTitle("Key Metrics", y);
+                addKpiCard(14, y, 42, 30, "Total Responses", summary.total, "Visible records included");
+                addKpiCard(59, y, 42, 30, "Average Age", summary.avgAge.toFixed(1), "Across respondents");
+                addKpiCard(104, y, 42, 30, "Overall SQD", summary.overallSQD.toFixed(2), "Average of SQD0–SQD8");
+                addKpiCard(149, y, 47, 38, "Top Office", shortenText(topOffices[0]?.[0] || "N/A"), "Most responses");
 
-            addKpiCard(14, y, 42, 28, "Total Responses", summary.total, "Visible records included");
-            addKpiCard(59, y, 42, 28, "Average Age", summary.avgAge.toFixed(1), "Across respondents");
-            addKpiCard(104, y, 42, 28, "Overall SQD", summary.overallSQD.toFixed(2), "Average of SQD0–SQD8");
-            addKpiCard(149, y, 47, 28, "Top Office", topOffices[0]?.[0] || "N/A", "Most responses");
+                y += 46;
 
-            y += 38;
+                y = addSectionTitle("Key Findings", y);
 
-            y = addSectionTitle("Key Findings", y);
+                const findingsText1 =
+                    `A total of ${summary.total} responses were included in this report. The average age of respondents was ${summary.avgAge.toFixed(1)} years. ` +
+                    `${sexStats.male} (${sexStats.malePct}%) were male, ${sexStats.female} (${sexStats.femalePct}%) were female, and ${sexStats.other} (${sexStats.otherPct}%) were classified as other or unspecified.`;
 
-            const findingsText1 =
-                `A total of ${summary.total} responses were included in this report. The average age of respondents was ${summary.avgAge.toFixed(1)} years. ` +
-                `${sexStats.male} (${sexStats.malePct}%) were male, ${sexStats.female} (${sexStats.femalePct}%) were female, and ${sexStats.other} (${sexStats.otherPct}%) were classified as other or unspecified.`;
+                y = addParagraph(findingsText1, y);
+                y += 3;
 
-            y = addParagraph(findingsText1, y);
-            y += 3;
+                const findingsText2 =
+                    `The overall service quality dimension average was ${summary.overallSQD.toFixed(2)}. ` +
+                    `The highest-rated dimension was ${highestSQD.label} with an average of ${highestSQD.value.toFixed(2)}, while the lowest-rated dimension was ${lowestSQD.label} with an average of ${lowestSQD.value.toFixed(2)}.`;
 
-            const findingsText2 =
-                `The overall service quality dimension average was ${summary.overallSQD.toFixed(2)}. ` +
-                `The highest-rated dimension was ${highestSQD.label} with an average of ${highestSQD.value.toFixed(2)}, while the lowest-rated dimension was ${lowestSQD.label} with an average of ${lowestSQD.value.toFixed(2)}.`;
+                y = addParagraph(findingsText2, y);
+                y += 3;
 
-            y = addParagraph(findingsText2, y);
-            y += 3;
+                const findingsText3 =
+                    `The office with the highest response count was ${topOffices[0]?.[0] || "N/A"}, while the most common client type was ${topClientTypes[0]?.[0] || "N/A"}. ` +
+                    `These patterns may help identify where services are most frequently used and where client feedback is most concentrated.`;
 
-            const findingsText3 =
-                `The office with the highest response count was ${topOffices[0]?.[0] || "N/A"}, while the most common client type was ${topClientTypes[0]?.[0] || "N/A"}. ` +
-                `These patterns may help identify where services are most frequently used and where client feedback is most concentrated.`;
+                y = addParagraph(findingsText3, y);
 
-            y = addParagraph(findingsText3, y);
+                addFooter(1);
 
-            addFooter(1);
+                doc.addPage();
+                addHeader("Survey Results Report", "Interpretation and Recommendations");
 
-            // PAGE 2
-            doc.addPage();
-            addHeader("Survey Results Report", "Interpretation and Recommendations");
+                y = 32;
 
-            y = 32;
+                y = addSectionTitle("Interpretation", y);
 
-            y = addSectionTitle("Interpretation", y);
+                const interpretationText =
+                    "The survey results indicate the current performance of services based on recorded client feedback. " +
+                    "Higher-scoring SQD dimensions may reflect service strengths, while lower-scoring dimensions can be treated as priority areas for operational review. " +
+                    "The results should be interpreted as a practical summary of available responses rather than as a full statistical study.";
 
-            const interpretationText =
-                "The survey results indicate the current performance of services based on recorded client feedback. " +
-                "Higher-scoring SQD dimensions may reflect service strengths, while lower-scoring dimensions can be treated as priority areas for operational review. " +
-                "The results should be interpreted as a practical summary of available responses rather than as a full statistical study.";
+                y = addParagraph(interpretationText, y);
+                y += 6;
 
-            y = addParagraph(interpretationText, y);
-            y += 6;
+                if (topSuggestions.length > 0) {
+                    y = addSectionTitle("Selected Client Suggestions", y);
 
-            if (topSuggestions.length > 0) {
-                y = addSectionTitle("Selected Client Suggestions", y);
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+
+                    topSuggestions.forEach((item) => {
+                        const lines = doc.splitTextToSize(`• ${item}`, 178);
+                        doc.text(lines, 18, y);
+                        y += lines.length * 5 + 2;
+                    });
+
+                    y += 3;
+                }
+
+                y = addSectionTitle("Recommendations", y);
+
+                const recommendations = [
+                    "Review the lowest-rated SQD area and identify the service step or process causing lower satisfaction.",
+                    "Use repeated reports over time to monitor whether service quality scores are improving.",
+                    "Prioritize offices with high response counts, since they provide stronger feedback volume for decision-making.",
+                    "Examine written suggestions regularly and group them into common improvement themes.",
+                    "Maintain a consistent report format to support easier comparison across reporting periods."
+                ];
 
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(10);
 
-                topSuggestions.forEach((item) => {
-                    const lines = doc.splitTextToSize(`• ${item}`, 178);
+                recommendations.forEach((rec) => {
+                    const lines = doc.splitTextToSize(`• ${rec}`, 178);
                     doc.text(lines, 18, y);
                     y += lines.length * 5 + 2;
                 });
 
-                y += 3;
+                y += 4;
+                y = addSectionTitle("Summary", y);
+
+                const summaryText =
+                    "Overall, this report provides a concise and structured overview of survey performance, respondent characteristics, and service quality patterns. " +
+                    "It may be used as a reference for management review, process improvement, and regular administrative reporting.";
+
+                y = addParagraph(summaryText, y);
+
+                addFooter(2);
+
+                doc.addPage();
+                addHeader("Survey Results Report", "Appendix: Top 10 Response Records");
+
+                const limitedRows = visibleRows.slice(0, 10);
+
+                const tableData = limitedRows.map(r => {
+                    const cells = r.querySelectorAll("td");
+                    return [
+                        cells[0]?.innerText.trim() || "",
+                        cells[1]?.innerText.trim() || "",
+                        cells[2]?.innerText.trim() || "",
+                        cells[3]?.innerText.trim() || "",
+                        cells[4]?.innerText.trim() || "",
+                        cells[8]?.innerText.trim() || ""
+                    ];
+                });
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor(124, 10, 2);
+                doc.text("Appendix A. Top 10 Survey Response Details", 14, 30);
+                doc.setTextColor(0, 0, 0);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.text(
+                    `Showing ${limitedRows.length} of ${visibleRows.length} filtered survey responses.`,
+                    14,
+                    36
+                );
+
+                doc.autoTable({
+                    startY: 42,
+                    head: [[
+                        "ID",
+                        "Office",
+                        "Age",
+                        "Sex",
+                        "Client Type",
+                        "SQD Summary"
+                    ]],
+                    body: tableData,
+                    theme: "grid",
+                    styles: {
+                        font: "helvetica",
+                        fontSize: 8,
+                        cellPadding: 2.5,
+                        overflow: "linebreak",
+                        valign: "top",
+                        textColor: [35, 35, 35],
+                        lineColor: [205, 205, 205],
+                        lineWidth: 0.15
+                    },
+                    headStyles: {
+                        fillColor: [124, 10, 2],
+                        textColor: [255, 255, 255],
+                        fontStyle: "bold"
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 248, 248]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 16 },
+                        1: { cellWidth: 42 },
+                        2: { cellWidth: 12 },
+                        3: { cellWidth: 18 },
+                        4: { cellWidth: 34 },
+                        5: { cellWidth: 62 }
+                    },
+                    margin: { left: 14, right: 14 },
+                    didDrawPage: function (data) {
+                        const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+                        if (data.pageNumber > 1) {
+                            addHeader("Survey Results Report", "Appendix: Top 10 Response Records");
+                        }
+                        addFooter(currentPage);
+                    }
+                });
+
+                const fileDate = new Date().toISOString().slice(0, 10);
+                doc.save(`ARTA_Short_Survey_Report_${fileDate}.pdf`);
             }
-
-            y = addSectionTitle("Recommendations", y);
-
-            const recommendations = [
-                "Review the lowest-rated SQD area and identify the service step or process causing lower satisfaction.",
-                "Use repeated reports over time to monitor whether service quality scores are improving.",
-                "Prioritize offices with high response counts, since they provide stronger feedback volume for decision-making.",
-                "Examine written suggestions regularly and group them into common improvement themes.",
-                "Maintain a consistent report format to support easier comparison across reporting periods."
-            ];
-
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-
-            recommendations.forEach((rec) => {
-                const lines = doc.splitTextToSize(`• ${rec}`, 178);
-                doc.text(lines, 18, y);
-                y += lines.length * 5 + 2;
-            });
-
-            y += 4;
-            y = addSectionTitle("Summary", y);
-
-            const summaryText =
-                "Overall, this report provides a concise and structured overview of survey performance, respondent characteristics, and service quality patterns. " +
-                "It may be used as a reference for management review, process improvement, and regular administrative reporting.";
-
-            y = addParagraph(summaryText, y);
-
-            addFooter(2);
-
-            // PAGE 3 APPENDIX TABLE (TOP 10 ONLY)
-            doc.addPage();
-            addHeader("Survey Results Report", "Appendix: Top 10 Response Records");
-
-            const limitedRows = visibleRows.slice(0, 10);
-
-            const tableData = limitedRows.map(r => {
-                const cells = r.querySelectorAll("td");
-
-                return [
-                    cells[0]?.innerText.trim() || "",
-                    cells[1]?.innerText.trim() || "",
-                    cells[2]?.innerText.trim() || "",
-                    cells[3]?.innerText.trim() || "",
-                    cells[4]?.innerText.trim() || "",
-                    cells[8]?.innerText.trim() || ""
-                ];
-            });
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.setTextColor(124, 10, 2);
-            doc.text("Appendix A. Top 10 Survey Response Details", 14, 30);
-            doc.setTextColor(0, 0, 0);
-
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(9);
-            doc.text(
-                `Showing ${limitedRows.length} of ${visibleRows.length} filtered survey responses.`,
-                14,
-                36
-            );
-
-            doc.autoTable({
-                startY: 42,
-                head: [[
-                    "ID",
-                    "Office",
-                    "Age",
-                    "Sex",
-                    "Client Type",
-                    "SQD Summary"
-                ]],
-                body: tableData,
-                theme: "grid",
-                styles: {
-                    font: "helvetica",
-                    fontSize: 8,
-                    cellPadding: 2.5,
-                    overflow: "linebreak",
-                    valign: "top",
-                    textColor: [35, 35, 35],
-                    lineColor: [205, 205, 205],
-                    lineWidth: 0.15
-                },
-                headStyles: {
-                    fillColor: [124, 10, 2],
-                    textColor: [255, 255, 255],
-                    fontStyle: "bold"
-                },
-                alternateRowStyles: {
-                    fillColor: [248, 248, 248]
-                },
-                columnStyles: {
-                    0: { cellWidth: 16 },
-                    1: { cellWidth: 42 },
-                    2: { cellWidth: 12 },
-                    3: { cellWidth: 18 },
-                    4: { cellWidth: 34 },
-                    5: { cellWidth: 62 }
-                },
-                margin: { left: 14, right: 14 },
-                didDrawPage: function () {
-                    const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
-                    addHeader("Survey Results Report", "Appendix: Top 10 Response Records");
-                    addFooter(currentPage);
-                }
-            });
-
-            const fileDate = new Date().toISOString().slice(0, 10);
-            doc.save(`ARTA_Short_Survey_Report_${fileDate}.pdf`);
-        }
 
             if (btnApply) btnApply.addEventListener("click", applyFilters);
             if (btnReset) btnReset.addEventListener("click", resetFilters);
