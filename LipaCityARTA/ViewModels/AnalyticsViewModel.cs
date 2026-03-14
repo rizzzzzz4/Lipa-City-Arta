@@ -31,6 +31,9 @@ namespace LipaCityARTA.ViewModels
         public List<OfficeMetric> TopOffices { get; set; } = new();
         public List<OfficeMetric> BottomOffices { get; set; } = new();
         public List<QuestionMetric> LowestQuestions { get; set; } = new();
+
+        public List<string> SQDLabels { get; set; } = new();
+public List<double> SQDScores { get; set; } = new();
     }
     public class OfficeMetric
     {

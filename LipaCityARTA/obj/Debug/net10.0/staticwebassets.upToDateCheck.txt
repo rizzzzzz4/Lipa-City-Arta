@@ -1,4 +1,5 @@
 wwwroot\css\admin-analytics.css
+wwwroot\css\admin-complaints.css
 wwwroot\css\admin-dashboard.css
 wwwroot\css\admin-survey-reports.css
 wwwroot\css\admin.css
@@ -6,6 +7,7 @@ wwwroot\css\complaint.css
 wwwroot\css\survey.css
 wwwroot\css\surveys.css
 wwwroot\css\thank-you.css
+wwwroot\css\track-complaint.css
 wwwroot\favicon.ico
 wwwroot\images\avatar.png
 wwwroot\js\admin.js
@@ -70,16 +72,14 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\css\admin-complaints.css
-wwwroot\css\track-complaint.css
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-analytics.css
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-complaints.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-dashboard.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-survey-reports.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\complaint.css
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\survey.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\surveys.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\thank-you.css
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\track-complaint.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\favicon.ico
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\js\admin.js
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\js\survey.js
@@ -142,5 +142,5 @@ C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\lib\jquery\dist\jquery.slim.js
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\lib\jquery\dist\jquery.slim.min.js
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\lib\jquery\dist\jquery.slim.min.map
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\lib\jquery\LICENSE.txt
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-complaints.css
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\track-complaint.css
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\admin-analytics.css
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\wwwroot\css\survey.css

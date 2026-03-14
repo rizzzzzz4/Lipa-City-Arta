@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LipaCityARTA")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e908bfe846c669a45aa7d17a559789d3dd5a0549")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+989771c2fff58a948bdc83c89bca7d16a02ae605")]
 [assembly: System.Reflection.AssemblyProductAttribute("LipaCityARTA")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LipaCityARTA")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

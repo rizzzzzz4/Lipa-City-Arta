@@ -25,6 +25,7 @@
 
     <div class="ar-filter-card">
         <form method="get" class="ar-filters">
+
             <div class="ar-field">
                 <label>From</label>
                 <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
@@ -51,12 +52,19 @@
             <div class="ar-field ar-field-action">
                 <button type="submit" class="ar-btn">Apply Filters</button>
             </div>
+
+            <div class="ar-field ar-field-action">
+                <button type="button" id="generateAnalyticsReportBtn" class="ar-btn-report">
+                    Generate Report
+                </button>
+            </div>
+
         </form>
     </div>
 
     <div class="ar-kpi-grid">
         <div class="ar-kpi-card">
-            <div class="ar-k-title">Total Submissions</div>
+            <div class="ar-k-title">Total Records</div>
             <div class="ar-k-value">@(Model.TotalSurveys + Model.TotalComplaints)</div>
         </div>
 
@@ -78,6 +86,21 @@
     </div>
 
     <div class="ar-grid ar-grid-main">
+
+        <div class="ar-card">
+            <div class="ar-card-h">
+                <div>
+                    <h3>Activity Trend</h3>
+                    <p>Survey satisfaction and complaint volume over time.</p>
+                </div>
+            </div>
+            <div class="ar-card-b">
+                <div class="ar-chart-wrap">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="ar-card">
             <div class="ar-card-h">
                 <div>
@@ -89,8 +112,27 @@
                 <div class="ar-chart-wrap">
                     <canvas id="officeChart"></canvas>
                 </div>
+
                 <div class="ar-note">
                     Satisfaction is shown as a line, while complaints are shown as bars.
+                </div>
+            </div>
+        </div>
+
+        <div class="ar-card">
+            <div class="ar-card-h">
+                <div>
+                    <h3>Service Quality Dimension Scores</h3>
+                    <p>Average rating for each SQD indicator.</p>
+                </div>
+            </div>
+            <div class="ar-card-b">
+                <div class="ar-chart-wrap">
+                    <canvas id="sqdChart"></canvas>
+                </div>
+
+                <div class="ar-note">
+                    Higher scores indicate better perceived service quality.
                 </div>
             </div>
         </div>
@@ -104,6 +146,7 @@
             </div>
             <div class="ar-card-b">
                 <div class="ar-list-block">
+
                     <div class="ar-list-card">
                         <b>Top Offices (Satisfaction)</b>
                         <ul class="ar-list">
@@ -133,9 +176,11 @@
                             }
                         </ul>
                     </div>
+
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -151,11 +196,47 @@
     @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OfficeComplaints ?? new List<int>()))
 </script>
 
+<script type="application/json" id="trendLabelsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Labels ?? new List<string>()))
+</script>
+
+<script type="application/json" id="trendSatJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SatisfactionTrend ?? new List<double>()))
+</script>
+
+<script type="application/json" id="trendCmpJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ComplaintTrend ?? new List<int>()))
+</script>
+
+<script type="application/json" id="sqdLabelsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SQDLabels ?? new List<string>()))
+</script>
+
+<script type="application/json" id="sqdScoresJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SQDScores ?? new List<double>()))
+</script>
+
+<script type="application/json" id="topOfficesJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopOffices ?? new List<LipaCityARTA.ViewModels.OfficeMetric>()))
+</script>
+
+<script type="application/json" id="bottomOfficesJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BottomOffices ?? new List<LipaCityARTA.ViewModels.OfficeMetric>()))
+</script>
+
+<script type="application/json" id="lowestQuestionsJson">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LowestQuestions ?? new List<LipaCityARTA.ViewModels.QuestionMetric>()))
+</script>
+
 @section Scripts {
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+
             const readJson = (id) => {
                 const el = document.getElementById(id);
                 return el ? JSON.parse(el.textContent) : [];
@@ -165,85 +246,478 @@
             const satisfaction = readJson("officeSatJson");
             const complaints = readJson("officeCmpJson");
 
-            const officeCanvas = document.getElementById("officeChart");
-            if (!officeCanvas) return;
+            const trendLabels = readJson("trendLabelsJson");
+            const trendSat = readJson("trendSatJson");
+            const trendCmp = readJson("trendCmpJson");
 
-            new Chart(officeCanvas, {
-                data: {
-                    labels: offices,
-                    datasets: [
-                        {
-                            type: "bar",
-                            label: "Complaints",
-                            data: complaints,
-                            backgroundColor: "rgba(124, 10, 2, 0.78)",
-                            borderRadius: 10,
-                            yAxisID: "yComplaints"
-                        },
-                        {
-                            type: "line",
-                            label: "Satisfaction",
-                            data: satisfaction,
-                            borderColor: "#f59e0b",
-                            backgroundColor: "rgba(245, 158, 11, 0.15)",
-                            fill: false,
-                            tension: 0.35,
-                            pointRadius: 4,
-                            pointHoverRadius: 5,
-                            yAxisID: "ySatisfaction"
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: "index",
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            position: "top"
-                        },
-                        tooltip: {
-                            enabled: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        yComplaints: {
-                            type: "linear",
-                            position: "left",
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: "Complaints"
+            const sqdLabels = readJson("sqdLabelsJson");
+            const sqdScores = readJson("sqdScoresJson");
+
+            const topOffices = readJson("topOfficesJson");
+            const bottomOffices = readJson("bottomOfficesJson");
+            const lowestQuestions = readJson("lowestQuestionsJson");
+
+            const generateAnalyticsReportBtn = document.getElementById("generateAnalyticsReportBtn");
+
+            const trendCanvas = document.getElementById("trendChart");
+
+            if (trendCanvas) {
+                new Chart(trendCanvas, {
+                    type: "line",
+                    data: {
+                        labels: trendLabels,
+                        datasets: [
+                            {
+                                label: "Avg Satisfaction",
+                                data: trendSat,
+                                borderColor: "#f59e0b",
+                                tension: 0.35,
+                                yAxisID: "ySat"
                             },
-                            ticks: {
-                                precision: 0
+                            {
+                                label: "Complaints",
+                                data: trendCmp,
+                                borderColor: "#7c0a02",
+                                tension: 0.35,
+                                yAxisID: "yCmp"
                             }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: "index",
+                            intersect: false
                         },
-                        ySatisfaction: {
-                            type: "linear",
-                            position: "right",
-                            beginAtZero: true,
-                            min: 0,
-                            max: 5,
-                            grid: {
-                                drawOnChartArea: false
+                        scales: {
+                            ySat: {
+                                type: "linear",
+                                position: "left",
+                                min: 0,
+                                max: 5
                             },
-                            title: {
-                                display: true,
-                                text: "Satisfaction"
+                            yCmp: {
+                                type: "linear",
+                                position: "right",
+                                beginAtZero: true
                             }
                         }
                     }
+                });
+            }
+
+            const officeCanvas = document.getElementById("officeChart");
+
+            if (officeCanvas) {
+                new Chart(officeCanvas, {
+                    data: {
+                        labels: offices,
+                        datasets: [
+                            {
+                                type: "bar",
+                                label: "Complaints",
+                                data: complaints,
+                                backgroundColor: "rgba(124,10,2,0.78)",
+                                borderRadius: 10,
+                                yAxisID: "yComplaints"
+                            },
+                            {
+                                type: "line",
+                                label: "Satisfaction",
+                                data: satisfaction,
+                                borderColor: "#f59e0b",
+                                tension: 0.35,
+                                yAxisID: "ySatisfaction"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        scales: {
+                            yComplaints: {
+                                type: "linear",
+                                position: "left",
+                                beginAtZero: true
+                            },
+                            ySatisfaction: {
+                                type: "linear",
+                                position: "right",
+                                min: 0,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+
+            const sqdCanvas = document.getElementById("sqdChart");
+
+            if (sqdCanvas) {
+                new Chart(sqdCanvas, {
+                    type: "bar",
+                    data: {
+                        labels: sqdLabels,
+                        datasets: [
+                            {
+                                label: "Average Score",
+                                data: sqdScores,
+                                backgroundColor: "rgba(245,158,11,0.75)",
+                                borderRadius: 8
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: "y",
+                        responsive: true,
+                        scales: {
+                            x: {
+                                min: 0,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+
+            async function loadImageAsBase64(url) {
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+
+                    return await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch {
+                    return null;
                 }
-            });
+            }
+
+            function getProp(obj, pascalName, camelName) {
+                if (!obj) return null;
+                if (obj[pascalName] !== undefined && obj[pascalName] !== null) return obj[pascalName];
+                if (obj[camelName] !== undefined && obj[camelName] !== null) return obj[camelName];
+                return null;
+            }
+
+            async function generateAnalyticsPdf() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF("p", "mm", "a4");
+
+                const logoBase64 = await loadImageAsBase64("/images/logo.png");
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                const selectedOffice = "@(Model.Office ?? "All Offices")";
+                const fromText = "@Model.From.ToString("MMMM dd, yyyy")";
+                const toText = "@Model.To.ToString("MMMM dd, yyyy")";
+                const totalSurveys = @Model.TotalSurveys;
+                const totalComplaints = @Model.TotalComplaints;
+                const avgSatisfaction = @Model.AvgSatisfaction.ToString("0.00");
+
+                const bestOffice = topOffices.length > 0 ? topOffices[0] : null;
+                const weakestOffice = bottomOffices.length > 0 ? bottomOffices[0] : null;
+                const lowestQuestion = lowestQuestions.length > 0 ? lowestQuestions[0] : null;
+
+                function addHeader(title, subtitle = "") {
+                    doc.setFillColor(124, 10, 2);
+                    doc.rect(0, 0, pageWidth, 22, "F");
+
+                    if (logoBase64) {
+                        doc.addImage(logoBase64, "PNG", 12, 4, 13, 13);
+                    }
+
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(15);
+                    doc.text(title, 30, 11);
+
+                    if (subtitle) {
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(8.5);
+                        doc.text(subtitle, 30, 16);
+                    }
+
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                function addFooter(pageNo) {
+                    doc.setDrawColor(210, 210, 210);
+                    doc.setLineWidth(0.2);
+                    doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8);
+                    doc.setTextColor(90, 90, 90);
+                    doc.text(`Generated on ${new Date().toLocaleString()}`, 14, pageHeight - 7);
+                    doc.text(`Page ${pageNo}`, pageWidth - 14, pageHeight - 7, { align: "right" });
+
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                function addSectionTitle(text, y) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(12.5);
+                    doc.setTextColor(124, 10, 2);
+                    doc.text(text, 14, y);
+
+                    doc.setDrawColor(124, 10, 2);
+                    doc.setLineWidth(0.35);
+                    doc.line(14, y + 2, 82, y + 2);
+
+                    doc.setTextColor(0, 0, 0);
+                    return y + 8;
+                }
+
+                function addParagraph(text, y, maxWidth = 182) {
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    const lines = doc.splitTextToSize(text, maxWidth);
+                    doc.text(lines, 14, y);
+                    return y + lines.length * 5;
+                }
+
+                function drawInfoRow(label, value, x, y, labelWidth = 42) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(9.5);
+                    doc.text(label, x, y);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.text(String(value), x + labelWidth, y);
+                }
+
+                function addKpiCard(x, y, w, h, label, value, sub = "") {
+                    doc.setFillColor(248, 248, 248);
+                    doc.setDrawColor(225, 225, 225);
+                    doc.roundedRect(x, y, w, h, 3, 3, "FD");
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(90, 90, 90);
+                    doc.text(label, x + 4, y + 7);
+
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(15);
+                    doc.setTextColor(124, 10, 2);
+                    doc.text(String(value), x + 4, y + 16);
+
+                    if (sub) {
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(100, 100, 100);
+                        const lines = doc.splitTextToSize(sub, w - 8);
+                        doc.text(lines, x + 4, y + 23);
+                    }
+
+                    doc.setTextColor(0, 0, 0);
+                }
+
+                addHeader("Analytics Performance Report", "Lipa City Anti-Red Tape Authority");
+
+                let y = 32;
+
+                y = addSectionTitle("Report Overview", y);
+
+                const overviewText =
+                    "This report presents a summary of analytics results based on the selected reporting filters. " +
+                    "It highlights survey and complaint volume, office-level performance, service quality dimensions, and key insights to support management review and service improvement.";
+
+                y = addParagraph(overviewText, y);
+                y += 4;
+
+                drawInfoRow("Office Scope:", selectedOffice, 14, y); y += 6;
+                drawInfoRow("Date Coverage:", `${fromText} - ${toText}`, 14, y); y += 10;
+
+                y = addSectionTitle("Key Metrics", y);
+
+                addKpiCard(14, y, 42, 28, "Total Surveys", totalSurveys, "Filtered survey records");
+                addKpiCard(59, y, 42, 28, "Total Complaints", totalComplaints, "Filtered complaint records");
+                addKpiCard(104, y, 42, 28, "Avg Satisfaction", avgSatisfaction, "Average score from 1 to 5");
+                addKpiCard(
+                    149, y, 47, 28,
+                    "Top Office",
+                    bestOffice ? (getProp(bestOffice, "Office", "office") || "N/A") : "N/A",
+                    "Highest satisfaction"
+                );
+
+                y += 38;
+
+                y = addSectionTitle("Key Findings", y);
+
+                const findings1 =
+                    `A total of ${totalSurveys} survey records and ${totalComplaints} complaint records were included in this analytics report. ` +
+                    `The average satisfaction score for the selected scope was ${avgSatisfaction}.`;
+
+                y = addParagraph(findings1, y);
+                y += 3;
+
+                const bestOfficeName = bestOffice ? (getProp(bestOffice, "Office", "office") || "N/A") : "N/A";
+                const weakestOfficeName = weakestOffice ? (getProp(weakestOffice, "Office", "office") || "N/A") : "N/A";
+
+                const findings2 =
+                    bestOffice && weakestOffice
+                        ? `${bestOfficeName} recorded the highest office satisfaction score, while ${weakestOfficeName} recorded the lowest among ranked offices.`
+                        : "Office ranking data was not sufficient to produce a full performance comparison.";
+
+                y = addParagraph(findings2, y);
+                y += 3;
+
+                const lowestQuestionName = lowestQuestion ? (getProp(lowestQuestion, "Question", "question") || "N/A") : "N/A";
+                const lowestQuestionScore = lowestQuestion ? Number(getProp(lowestQuestion, "Score", "score") || 0).toFixed(2) : "0.00";
+
+                const findings3 =
+                    lowestQuestion
+                        ? `The lowest-rated service quality dimension was ${lowestQuestionName} with an average score of ${lowestQuestionScore}. This may indicate an area requiring closer operational review.`
+                        : "No low-performing SQD indicator could be identified from the current filtered dataset.";
+
+                y = addParagraph(findings3, y);
+
+                addFooter(1);
+
+                doc.addPage();
+                addHeader("Analytics Performance Report", "Interpretation and Recommendations");
+
+                y = 32;
+
+                y = addSectionTitle("Interpretation", y);
+
+                const interpretationText =
+                    "The analytics results provide a consolidated view of service performance across the selected offices and time period. " +
+                    "Higher satisfaction scores may reflect stronger service delivery, while low-scoring dimensions or offices may indicate communication issues, procedural weaknesses, or delays. " +
+                    "Complaint counts should be interpreted together with satisfaction results to better understand operational conditions.";
+
+                y = addParagraph(interpretationText, y);
+                y += 6;
+
+                y = addSectionTitle("Recommendations", y);
+
+                const recommendations = [
+                    "Review offices with lower satisfaction scores and compare them against complaint volume for possible process issues.",
+                    "Prioritize the lowest-rated SQD indicator and assess whether improvements are needed in information delivery, efficiency, or staff interaction.",
+                    "Use repeated analytics reports across reporting periods to monitor service quality trends.",
+                    "Discuss office comparison results during administrative review meetings to identify best practices and improvement targets.",
+                    "Maintain consistent filtering and report generation to support easier comparison over time."
+                ];
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+
+                recommendations.forEach((rec) => {
+                    const lines = doc.splitTextToSize(`• ${rec}`, 178);
+                    doc.text(lines, 18, y);
+                    y += lines.length * 5 + 2;
+                });
+
+                y += 4;
+                y = addSectionTitle("Summary", y);
+
+                const summaryText =
+                    "Overall, this report provides a concise summary of analytics performance, combining survey satisfaction, complaint volume, office comparison, and service quality patterns. " +
+                    "It may be used as a reference for decision-making, operational review, and regular administrative reporting.";
+
+                y = addParagraph(summaryText, y);
+
+                addFooter(2);
+
+                doc.addPage();
+                addHeader("Analytics Performance Report", "Appendix: Performance Tables");
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor(124, 10, 2);
+                doc.text("Appendix A. Top and Bottom Office Performance", 14, 30);
+                doc.setTextColor(0, 0, 0);
+
+                const officeTable = [];
+                const maxRows = Math.max(topOffices.length, bottomOffices.length);
+
+                for (let i = 0; i < maxRows; i++) {
+                    const topItem = topOffices[i];
+                    const bottomItem = bottomOffices[i];
+
+                    officeTable.push([
+                        topItem ? (getProp(topItem, "Office", "office") || "") : "",
+                        topItem ? Number(getProp(topItem, "Score", "score") || 0).toFixed(2) : "",
+                        bottomItem ? (getProp(bottomItem, "Office", "office") || "") : "",
+                        bottomItem ? Number(getProp(bottomItem, "Score", "score") || 0).toFixed(2) : ""
+                    ]);
+                }
+
+                doc.autoTable({
+                    startY: 36,
+                    head: [["Top Office", "Score", "Bottom Office", "Score"]],
+                    body: officeTable,
+                    theme: "grid",
+                    styles: {
+                        font: "helvetica",
+                        fontSize: 8.5,
+                        cellPadding: 2.5,
+                        textColor: [35, 35, 35],
+                        lineColor: [205, 205, 205],
+                        lineWidth: 0.15
+                    },
+                    headStyles: {
+                        fillColor: [124, 10, 2],
+                        textColor: [255, 255, 255],
+                        fontStyle: "bold"
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 248, 248]
+                    },
+                    margin: { left: 14, right: 14 }
+                });
+
+                let nextY = doc.lastAutoTable.finalY + 12;
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor(124, 10, 2);
+                doc.text("Appendix B. Lowest Survey Questions", 14, nextY);
+                doc.setTextColor(0, 0, 0);
+
+                doc.autoTable({
+                    startY: nextY + 6,
+                    head: [["Question", "Average Score"]],
+                    body: lowestQuestions.map(x => [
+                        getProp(x, "Question", "question") || "",
+                        Number(getProp(x, "Score", "score") || 0).toFixed(2)
+                    ]),
+                    theme: "grid",
+                    styles: {
+                        font: "helvetica",
+                        fontSize: 8.5,
+                        cellPadding: 2.5,
+                        textColor: [35, 35, 35],
+                        lineColor: [205, 205, 205],
+                        lineWidth: 0.15
+                    },
+                    headStyles: {
+                        fillColor: [124, 10, 2],
+                        textColor: [255, 255, 255],
+                        fontStyle: "bold"
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 248, 248]
+                    },
+                    margin: { left: 14, right: 14 }
+                });
+
+                addFooter(3);
+
+                const fileDate = new Date().toISOString().slice(0, 10);
+                doc.save(`ARTA_Analytics_Report_${fileDate}.pdf`);
+            }
+
+            if (generateAnalyticsReportBtn) {
+                generateAnalyticsReportBtn.addEventListener("click", generateAnalyticsPdf);
+            }
         });
     </script>
 }

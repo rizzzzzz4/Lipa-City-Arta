@@ -11,7 +11,7 @@
     <div class="complaint-card">
 
         <h2 class="complaint-title">Submit a Complaint</h2>
-       
+
         <form asp-action="Complaint" method="post" class="complaint-form">
 
             <div class="complaint-form-group">
@@ -60,7 +60,7 @@
                 <div id="client-tags" class="complaint-tag-container">
                     <button type="button" class="complaint-tag" data-value="Citizen">Citizen</button>
                     <button type="button" class="complaint-tag" data-value="Business">Business</button>
-                    <button type="button" class="complaint-tag" data-value="Government">Government</button>
+                    <button type="button" class="complaint-tag" data-value="Government">Government (Other Agencies)</button>
                 </div>
 
                 <input type="hidden" asp-for="ClientType" id="ClientType" />
@@ -82,7 +82,6 @@
                     <button type="button" class="complaint-tag" data-value="No Application updates">No Application updates</button>
                     <button type="button" class="complaint-tag" data-value="Application rejected without assistance">Application rejected without assistance</button>
                     <button type="button" class="complaint-tag" data-value="Too many signatures/approvals (red tape)">Too many signatures/approvals (red tape)</button>
-                    <button type="button" class="complaint-tag" data-value="Too many requirements">Too many requirements</button>
                 </div>
 
                 <input type="hidden" asp-for="Reason" id="TagInput" />
@@ -101,12 +100,11 @@
 
             <div class="complaint-form-group">
                 <label class="complaint-label" for="Email">Email</label>
-                <input id="Email" class="complaint-input" asp-for="Email" />
+                <input id="Email" type="email" class="complaint-input" asp-for="Email" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
             <div class="complaint-actions">
-
                 <a asp-controller="Public" asp-action="Choose" class="complaint-back-btn">
                     Back
                 </a>
@@ -114,7 +112,6 @@
                 <button type="submit" class="complaint-submit-btn">
                     Submit Complaint
                 </button>
-
             </div>
         </form>
     </div>
@@ -129,36 +126,66 @@
             const reasonTags = document.querySelectorAll("#complaint-tags .complaint-tag");
             const reasonInput = document.getElementById("TagInput");
 
+            function updateReasonInput() {
+                if (!reasonInput) return;
+
+                const selectedReasons = Array.from(reasonTags)
+                    .filter(tag => tag.classList.contains("selected"))
+                    .map(tag => tag.dataset.value);
+
+                reasonInput.value = selectedReasons.join(", ");
+            }
+
             reasonTags.forEach(tag => {
                 tag.addEventListener("click", function () {
                     this.classList.toggle("selected");
-
-                    const selectedReasons = Array.from(reasonTags)
-                        .filter(t => t.classList.contains("selected"))
-                        .map(t => t.dataset.value);
-
-                    reasonInput.value = selectedReasons.join(", ");
+                    updateReasonInput();
                 });
-            });
 
-            const clientTags = document.querySelectorAll("#client-tags .complaint-tag");
-            const clientInput = document.getElementById("ClientType");
+                tag.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        this.classList.toggle("selected");
+                        updateReasonInput();
 
-            clientTags.forEach(tag => {
-                tag.addEventListener("click", function () {
-                    clientTags.forEach(t => t.classList.remove("selected"));
-                    this.classList.add("selected");
-                    clientInput.value = this.dataset.value;
+            function setupClientTagSelector(containerId, inputId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const input = document.getElementById(inputId);
+                const tags = container.querySelectorAll(".complaint-tag");
+
+                tags.forEach(tag => {
+                    tag.addEventListener("click", function () {
+
+                        tags.forEach(t => {
+                            t.style.display = "inline-flex";
+                            t.classList.remove("selected");
+                        });
+
+                        tags.forEach(t => {
+                            if (t !== tag) {
+                                t.style.display = "none";
+                            }
+                        });
+
+                        tag.classList.add("selected");
+
+                        if (input) {
+                            input.value = tag.dataset.value;
+                        }
+                    });
+
+                    tag.addEventListener("keydown", function (e) {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            tag.click();
+                        }
+                    });
                 });
-            });
-
-            if (clientInput) {
-                clientInput.value = "Citizen";
-                const defaultClientTag = document.querySelector('#client-tags .complaint-tag[data-value="Citizen"]');
-                if (defaultClientTag) {
-                    defaultClientTag.classList.add("selected");
-                }
             }
+
+            setupClientTagSelector("client-tags", "ClientType");
         });
     </script>
 }

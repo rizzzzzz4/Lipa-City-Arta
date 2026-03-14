@@ -128,9 +128,9 @@ namespace LipaCityARTA.Controllers
             if (!IsAdminLoggedIn())
                 return RedirectToAction("Login");
 
-            // Default range: last 30 days
             var start = from?.Date ?? DateTime.Today.AddDays(-30);
-            var end = to?.Date.AddDays(1) ?? DateTime.Today.AddDays(1);
+            var endDisplay = to?.Date ?? DateTime.Today;
+            var end = endDisplay.AddDays(1);
 
             var surveysQ = _context.SurveyResponses
                 .Where(s => s.DateSubmitted >= start && s.DateSubmitted < end);
@@ -147,7 +147,6 @@ namespace LipaCityARTA.Controllers
             double RowSatisfaction(SurveyResponse s) =>
                 (s.SQD0 + s.SQD1 + s.SQD2 + s.SQD3 + s.SQD4 + s.SQD5 + s.SQD6 + s.SQD7 + s.SQD8) / 9.0;
 
-            // Trend grouped by day
             var satisfactionGroups = surveysQ
                 .AsEnumerable()
                 .GroupBy(s => s.DateSubmitted.Date)
@@ -243,6 +242,32 @@ namespace LipaCityARTA.Controllers
                 .Take(3)
                 .ToList();
 
+            var sqdLabels = new List<string>
+    {
+        "SQD0 – Overall Satisfaction",
+        "SQD1 – Time Efficiency",
+        "SQD2 – Process Compliance",
+        "SQD3 – Process Simplicity",
+        "SQD4 – Information Accessibility",
+        "SQD5 – Reasonable Fees",
+        "SQD6 – Fairness",
+        "SQD7 – Staff Courtesy",
+        "SQD8 – Service Outcome"
+    };
+
+            var sqdScores = new List<double>
+    {
+        AvgQ(s => s.SQD0),
+        AvgQ(s => s.SQD1),
+        AvgQ(s => s.SQD2),
+        AvgQ(s => s.SQD3),
+        AvgQ(s => s.SQD4),
+        AvgQ(s => s.SQD5),
+        AvgQ(s => s.SQD6),
+        AvgQ(s => s.SQD7),
+        AvgQ(s => s.SQD8)
+    };
+
             double avgSat = surveysQ.Any()
                 ? surveysQ.AsEnumerable().Average(RowSatisfaction)
                 : 0;
@@ -251,7 +276,7 @@ namespace LipaCityARTA.Controllers
             {
                 Office = office,
                 From = start,
-                To = end,
+                To = endDisplay,
 
                 TotalSurveys = surveysQ.Count(),
                 TotalComplaints = complaintsQ.Count(),
@@ -267,12 +292,14 @@ namespace LipaCityARTA.Controllers
 
                 TopOffices = topOffices,
                 BottomOffices = bottomOffices,
-                LowestQuestions = lowestQuestions
+                LowestQuestions = lowestQuestions,
+
+                SQDLabels = sqdLabels,
+                SQDScores = sqdScores
             };
 
             return View(vm);
         }
-
         public IActionResult SurveyReports()
         {
             if (!IsAdminLoggedIn())
@@ -384,6 +411,8 @@ namespace LipaCityARTA.Controllers
 
             return View(vm);
         }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
