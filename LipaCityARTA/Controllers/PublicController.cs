@@ -65,7 +65,7 @@ namespace LipaCityARTA.Controllers
                 _context.Complaints.Add(model);
                 _context.SaveChanges();
 
-                TempData["TrackingId"] = model.TrackingId;   // IMPORTANT
+                TempData["TrackingId"] = model.TrackingId;   
 
                 return RedirectToAction("ThankYou");
             }

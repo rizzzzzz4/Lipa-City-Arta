@@ -1,0 +1,46 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace LipaCityARTA.Migrations
+{
+    /// <inheritdoc />
+    public partial class FixMissingComplaintColumns : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<int>(
+                name: "AssignedToAdminUserId",
+                table: "AdminUsers",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "ResolvedAt",
+                table: "AdminUsers",
+                type: "datetime2",
+                nullable: true);
+
+            migrationBuilder.UpdateData(
+                table: "AdminUsers",
+                keyColumn: "Id",
+                keyValue: 1,
+                columns: new[] { "AssignedToAdminUserId", "ResolvedAt" },
+                values: new object[] { null, null });
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "AssignedToAdminUserId",
+                table: "AdminUsers");
+
+            migrationBuilder.DropColumn(
+                name: "ResolvedAt",
+                table: "AdminUsers");
+        }
+    }
+}

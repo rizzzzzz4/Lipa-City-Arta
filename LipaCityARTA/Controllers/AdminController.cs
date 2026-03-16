@@ -26,17 +26,22 @@ namespace LipaCityARTA.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Login(string username, string password)
         {
-            var user = _context.AdminUsers
-                .FirstOrDefault(u => u.Username == username && u.Password == password);
+            var user = _context.AdminUsers.FirstOrDefault(u => u.Username == username);
 
-            if (user != null)
+            if (user == null)
             {
-                HttpContext.Session.SetString("Admin", user.Username ?? string.Empty);
-                return RedirectToAction("Dashboard");
+                ViewBag.Error = "Username not found";
+                return View();
             }
 
-            ViewBag.Error = "Invalid login credentials";
-            return View();
+            if (user.Password != password)
+            {
+                ViewBag.Error = "Incorrect password";
+                return View();
+            }
+
+            HttpContext.Session.SetString("Admin", user.Username ?? string.Empty);
+            return RedirectToAction("Dashboard");
         }
 
         public IActionResult Dashboard()
@@ -426,10 +431,10 @@ namespace LipaCityARTA.Controllers
 
             complaint.Status = status;
 
-            if (status == "Resolved")
-                complaint.ResolvedAt = DateTime.Now;
-            else
-                complaint.ResolvedAt = null;
+           // if (status == "Resolved")
+               // complaint.ResolvedAt = DateTime.Now;
+          //  else
+              //  complaint.ResolvedAt = null;
 
             _context.SaveChanges();
             return RedirectToAction("Complaints");

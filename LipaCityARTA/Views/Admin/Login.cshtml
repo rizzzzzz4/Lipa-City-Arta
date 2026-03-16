@@ -30,7 +30,7 @@
             <div class="login-card">
                 <h2>Admin Login</h2>
 
-                <form asp-action="Login" method="post">
+                <form asp-controller="Admin" asp-action="Login" method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="input-group">
