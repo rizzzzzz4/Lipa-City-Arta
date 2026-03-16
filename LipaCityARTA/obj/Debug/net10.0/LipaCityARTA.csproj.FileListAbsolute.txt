@@ -459,7 +459,6 @@ C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\frzkqqqoa2-{
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-idfbcesphp-idfbcesphp.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\2d6w2jgqmw-{0}-ea2i7p9p8o-ea2i7p9p8o.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ni37bfvt8w-{0}-r18igrugyb-r18igrugyb.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-o4dgginzdu-o4dgginzdu.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\f9dxrkc6px-{0}-m6awsl3gre-m6awsl3gre.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-p4qcvwdyu7-p4qcvwdyu7.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-idfbcesphp-idfbcesphp.gz
@@ -470,3 +469,4 @@ C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\m0qcxjzq2m-{0}-ycf385a9qg-ycf385a9qg.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\z4w0wb7rn5-{0}-jgfdcd8ehg-jgfdcd8ehg.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\frzkqqqoa2-{0}-bykv7s3dg2-bykv7s3dg2.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-p4qcvwdyu7-p4qcvwdyu7.gz

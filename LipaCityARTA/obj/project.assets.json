@@ -3087,11 +3087,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Administrator\\source\\repos\\Lipa-City-Arta\\LipaCityARTA\\LipaCityARTA.csproj",
+      "projectUniqueName": "C:\\ARTA_Lipa\\LipaCityARTA\\LipaCityARTA\\LipaCityARTA.csproj",
       "projectName": "LipaCityARTA",
-      "projectPath": "C:\\Users\\Administrator\\source\\repos\\Lipa-City-Arta\\LipaCityARTA\\LipaCityARTA.csproj",
+      "projectPath": "C:\\ARTA_Lipa\\LipaCityARTA\\LipaCityARTA\\LipaCityARTA.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Administrator\\source\\repos\\Lipa-City-Arta\\LipaCityARTA\\obj\\",
+      "outputPath": "C:\\ARTA_Lipa\\LipaCityARTA\\LipaCityARTA\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
