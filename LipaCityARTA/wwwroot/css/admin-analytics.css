@@ -261,7 +261,7 @@
 .ar-chart-wrap {
     position: relative;
     width: 100%;
-    min-height: 360px;
+    min-height: 340px;
 }
 
     .ar-chart-wrap canvas {

@@ -564,197 +564,181 @@
 
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 16;
+        const contentWidth = pageWidth - (margin * 2);
 
-        const selectedOffice = reportMeta.selectedOffice;
-        const fromText = reportMeta.fromText;
-        const toText = reportMeta.toText;
-        const totalSurveys = reportMeta.totalSurveys;
-        const totalComplaints = reportMeta.totalComplaints;
-        const avgSatisfaction = reportMeta.avgSatisfaction;
+        const selectedOffice = reportMeta.selectedOffice || "All Offices";
+        const fromText = reportMeta.fromText || "All Dates";
+        const toText = reportMeta.toText || "";
+        const totalSurveys = Number(reportMeta.totalSurveys || 0);
+        const totalComplaints = Number(reportMeta.totalComplaints || 0);
+        const avgSatisfaction = Number(reportMeta.avgSatisfaction || 0).toFixed(2);
 
         const bestOffice = topOffices.length > 0 ? topOffices[0] : null;
         const weakestOffice = bottomOffices.length > 0 ? bottomOffices[0] : null;
         const lowestQuestion = lowestQuestions.length > 0 ? lowestQuestions[0] : null;
 
-        function addHeader(title, subtitle = "") {
-        doc.setFillColor(124, 10, 2);
-        doc.rect(0, 0, pageWidth, 22, "F");
+        const bestOfficeName = bestOffice ? (getProp(bestOffice, "Office", "office") || "N/A") : "N/A";
+        const weakestOfficeName = weakestOffice ? (getProp(weakestOffice, "Office", "office") || "N/A") : "N/A";
+        const lowestQuestionName = lowestQuestion ? (getProp(lowestQuestion, "Question", "question") || "N/A") : "N/A";
+        const lowestQuestionScore = lowestQuestion ? Number(getProp(lowestQuestion, "Score", "score") || 0).toFixed(2) : "0.00";
 
-        if (logoBase64) {
-        doc.addImage(logoBase64, "PNG", 12, 4, 13, 13);
+        function formatDateCoverage(from, to) {
+        if (!from && !to) return "All Dates";
+        if (from && to) return `${from} - ${to}`;
+        return from || to || "All Dates";
         }
 
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(15);
-        doc.text(title, 30, 11);
+        function ensureSpace(currentY, neededHeight = 10) {
+        if (currentY + neededHeight > pageHeight - 18) {
+        addFooter(doc.getNumberOfPages());
+        doc.addPage();
+        drawHeader();
+        return 48;
+        }
+        return currentY;
+        }
 
-        if (subtitle) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.text(subtitle, 30, 16);
+        function drawHeader() {
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, 40, "F");
+
+        if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", margin, 10, 16, 16);
         }
 
         doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(17);
+        doc.text("Analytics Performance Report", margin + 20, 18);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10.5);
+        doc.text("Lipa City Anti-Red Tape Authority", margin + 20, 25);
+
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.35);
+        doc.line(margin, 32, pageWidth - margin, 32);
         }
 
         function addFooter(pageNo) {
         doc.setDrawColor(210, 210, 210);
         doc.setLineWidth(0.2);
-        doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.setTextColor(90, 90, 90);
-        doc.text(`Generated on ${new Date().toLocaleString()}`, 14, pageHeight - 7);
-        doc.text(`Page ${pageNo}`, pageWidth - 14, pageHeight - 7, { align: "right" });
+        doc.text(`Generated on ${new Date().toLocaleString()}`, margin, pageHeight - 7);
+        doc.text(`Page ${pageNo}`, pageWidth - margin, pageHeight - 7, { align: "right" });
 
         doc.setTextColor(0, 0, 0);
         }
 
-        function addSectionTitle(text, y) {
+        function addSectionTitle(title, y) {
+        y = ensureSpace(y, 10);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(12.5);
-        doc.setTextColor(124, 10, 2);
-        doc.text(text, 14, y);
-
-        doc.setDrawColor(124, 10, 2);
-        doc.setLineWidth(0.35);
-        doc.line(14, y + 2, 82, y + 2);
-
+        doc.setFontSize(13);
         doc.setTextColor(0, 0, 0);
+        doc.text(title, margin, y);
         return y + 8;
         }
 
-        function addParagraph(text, y, maxWidth = 182) {
+        function addParagraph(text, y, width = contentWidth) {
+        y = ensureSpace(y, 12);
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize(text, maxWidth);
-        doc.text(lines, 14, y);
-        return y + lines.length * 5;
+        doc.setFontSize(10.5);
+        doc.setTextColor(20, 20, 20);
+
+        const lines = doc.splitTextToSize(text, width);
+        doc.text(lines, margin, y);
+        return y + (lines.length * 5.2);
         }
 
-        function drawInfoRow(label, value, x, y, labelWidth = 42) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.text(label, x, y);
-
-        doc.setFont("helvetica", "normal");
-        doc.text(String(value), x + labelWidth, y);
-        }
-
-        function addKpiCard(x, y, w, h, label, value, sub = "") {
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(225, 225, 225);
-        doc.roundedRect(x, y, w, h, 3, 3, "FD");
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.setTextColor(90, 90, 90);
-        doc.text(label, x + 4, y + 7);
-
-        const valueText = String(value || "N/A").trim();
-        const maxValueWidth = w - 8;
-
-        let valueFontSize = 15;
-        if (valueText.length > 12) valueFontSize = 13;
-        if (valueText.length > 18) valueFontSize = 11;
-        if (valueText.length > 25) valueFontSize = 9;
+        function drawInfoRow(label, value, y) {
+        y = ensureSpace(y, 8);
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(valueFontSize);
-        doc.setTextColor(124, 10, 2);
-
-        const valueLines = doc.splitTextToSize(valueText, maxValueWidth).slice(0, 2);
-        doc.text(valueLines, x + 4, y + 16);
-
-        if (sub) {
-        const valueBlockHeight = valueLines.length * 4.2;
+        doc.setFontSize(10.5);
+        doc.text(label, margin, y);
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.5);
-        doc.setTextColor(100, 100, 100);
+        doc.text(String(value || "N/A"), margin + 40, y);
 
-        const subLines = doc.splitTextToSize(sub, w - 8).slice(0, 2);
-        doc.text(subLines, x + 4, y + 16 + valueBlockHeight + 2);
+        return y + 7;
         }
 
-        doc.setTextColor(0, 0, 0);
-        }
+        // ===== PAGE 1 =====
+        drawHeader();
 
-        addHeader("Analytics Performance Report", "Lipa City Anti-Red Tape Authority");
-
-        let y = 32;
+        let y = 46;
 
         y = addSectionTitle("Report Overview", y);
 
         const overviewText =
-        "This report presents a summary of analytics results based on the selected reporting filters. " +
-        "It highlights survey and complaint volume, office-level performance, service quality dimensions, and key insights to support management review and service improvement.";
+        "This report summarizes the analytics results collected based on the selected filters. " +
+        "It presents the performance indicators, service quality results, complaint trends, and major response patterns for administrative review.";
 
         y = addParagraph(overviewText, y);
-        y += 4;
+        y += 6;
 
-        drawInfoRow("Office Scope:", selectedOffice, 14, y); y += 6;
-        drawInfoRow("Date Coverage:", `${fromText} - ${toText}`, 14, y); y += 10;
+        y = drawInfoRow("Office Scope:", selectedOffice, y);
+        y = drawInfoRow("Date Coverage:", formatDateCoverage(fromText, toText), y);
+        y += 4;
 
         y = addSectionTitle("Key Metrics", y);
 
-        addKpiCard(14, y, 42, 28, "Total Surveys", totalSurveys, "Filtered survey records");
-        addKpiCard(59, y, 42, 28, "Total Complaints", totalComplaints, "Filtered complaint records");
-        addKpiCard(104, y, 42, 28, "Avg Satisfaction", avgSatisfaction, "Average score from 1 to 5");
-        addKpiCard(
-        149, y, 42, 28,
-        "Top Office",
-        bestOffice ? (getProp(bestOffice, "Office", "office") || "N/A") : "N/A",
-        "Highest satisfaction"
-        );
-
-        y += 38;
+        y = drawInfoRow("Total Surveys:", totalSurveys, y);
+        y = drawInfoRow("Total Complaints:", totalComplaints, y);
+        y = drawInfoRow("Average Satisfaction:", avgSatisfaction, y);
+        y = drawInfoRow("Top Office:", bestOfficeName, y);
+        y += 4;
 
         y = addSectionTitle("Key Findings", y);
 
         const findings1 =
-        `A total of ${totalSurveys} survey records and ${totalComplaints} complaint records were included in this analytics report. ` +
-        `The average satisfaction score for the selected scope was ${avgSatisfaction}.`;
+        `A total of ${totalSurveys} survey records and ${totalComplaints} complaint records were included in this report. ` +
+        `The average satisfaction score across the selected scope was ${avgSatisfaction}.`;
 
         y = addParagraph(findings1, y);
         y += 3;
 
-        const bestOfficeName = bestOffice ? (getProp(bestOffice, "Office", "office") || "N/A") : "N/A";
-        const weakestOfficeName = weakestOffice ? (getProp(weakestOffice, "Office", "office") || "N/A") : "N/A";
-
         const findings2 =
         bestOffice && weakestOffice
         ? `${bestOfficeName} recorded the highest office satisfaction score, while ${weakestOfficeName} recorded the lowest among ranked offices.`
-        : "Office ranking data was not sufficient to produce a full performance comparison.";
+        : "Office comparison data was not sufficient to produce a complete ranking across offices.";
 
         y = addParagraph(findings2, y);
         y += 3;
 
-        const lowestQuestionName = lowestQuestion ? (getProp(lowestQuestion, "Question", "question") || "N/A") : "N/A";
-        const lowestQuestionScore = lowestQuestion ? Number(getProp(lowestQuestion, "Score", "score") || 0).toFixed(2) : "0.00";
-
         const findings3 =
         lowestQuestion
-        ? `The lowest-rated service quality dimension was ${lowestQuestionName} with an average score of ${lowestQuestionScore}. This may indicate an area requiring closer operational review.`
-        : "No low-performing SQD indicator could be identified from the current filtered dataset.";
+        ? `The lowest-rated service quality dimension was ${lowestQuestionName} with an average score of ${lowestQuestionScore}. This may indicate an area that requires closer operational review and improvement.`
+        : "No low-performing service quality dimension could be identified from the current filtered dataset.";
 
         y = addParagraph(findings3, y);
+        y += 3;
+
+        const findings4 =
+        totalComplaints > 0
+        ? `Complaint volume should be interpreted together with satisfaction results to better understand current service conditions and possible improvement priorities.`
+        : `No complaint records were included in the selected scope, which may suggest low complaint incidence or limited complaint data for the chosen filters.`;
+
+        y = addParagraph(findings4, y);
 
         addFooter(1);
 
+        // ===== PAGE 2 =====
         doc.addPage();
-        addHeader("Analytics Performance Report", "Interpretation and Recommendations");
-
-        y = 32;
+        drawHeader();
+        y = 46;
 
         y = addSectionTitle("Interpretation", y);
 
         const interpretationText =
-        "The analytics results provide a consolidated view of service performance across the selected offices and time period. " +
-        "Higher satisfaction scores may reflect stronger service delivery, while low-scoring dimensions or offices may indicate communication issues, procedural weaknesses, or delays. " +
-        "Complaint counts should be interpreted together with satisfaction results to better understand operational conditions.";
+        "The analytics results provide a consolidated view of service performance for the selected office scope and reporting period. " +
+        "Higher satisfaction scores may reflect stronger service delivery and better client experience, while low-rated dimensions may point to procedural delays, communication gaps, or service inefficiencies. " +
+        "Complaint counts should be reviewed together with survey results to support balanced performance assessment.";
 
         y = addParagraph(interpretationText, y);
         y += 6;
@@ -762,41 +746,40 @@
         y = addSectionTitle("Recommendations", y);
 
         const recommendations = [
-        "Review offices with lower satisfaction scores and compare them against complaint volume for possible process issues.",
-        "Prioritize the lowest-rated SQD indicator and assess whether improvements are needed in information delivery, efficiency, or staff interaction.",
-        "Use repeated analytics reports across reporting periods to monitor service quality trends.",
-        "Discuss office comparison results during administrative review meetings to identify best practices and improvement targets.",
-        "Maintain consistent filtering and report generation to support easier comparison over time."
+        "Review offices with lower satisfaction performance and compare them against complaint volume for possible operational issues.",
+        "Prioritize the lowest-rated service quality indicator and determine whether process, communication, or staffing improvements are needed.",
+        "Use recurring analytics reports to monitor whether service quality is improving over time.",
+        "Discuss office-level findings during administrative review meetings to identify best practices and improvement targets.",
+        "Maintain consistent report filters and reporting periods to support clearer trend comparison."
         ];
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
+        doc.setFontSize(10.5);
 
         recommendations.forEach((rec) => {
-        const lines = doc.splitTextToSize(`• ${rec}`, 178);
-        doc.text(lines, 18, y);
-        y += lines.length * 5 + 2;
+        y = ensureSpace(y, 10);
+        const lines = doc.splitTextToSize(`• ${rec}`, contentWidth - 4);
+        doc.text(lines, margin, y);
+        y += (lines.length * 5.2) + 2;
         });
 
-        y += 4;
+        y += 2;
         y = addSectionTitle("Summary", y);
 
         const summaryText =
-        "Overall, this report provides a concise summary of analytics performance, combining survey satisfaction, complaint volume, office comparison, and service quality patterns. " +
-        "It may be used as a reference for decision-making, operational review, and regular administrative reporting.";
+        "Overall, this analytics report provides a concise presentation of survey performance, complaint volume, office comparison, and service quality patterns. " +
+        "It may be used as a reference for decision-making, operational review, and routine administrative reporting.";
 
         y = addParagraph(summaryText, y);
 
         addFooter(2);
 
+        // ===== PAGE 3 =====
         doc.addPage();
-        addHeader("Analytics Performance Report", "Appendix: Performance Tables");
+        drawHeader();
+        y = 46;
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(124, 10, 2);
-        doc.text("Appendix A. Top and Bottom Office Performance", 14, 30);
-        doc.setTextColor(0, 0, 0);
+        y = addSectionTitle("Appendix A. Office Performance", y);
 
         const officeTable = [];
         const maxRows = Math.max(topOffices.length, bottomOffices.length);
@@ -814,62 +797,61 @@
         }
 
         doc.autoTable({
-        startY: 36,
-        head: [["Top Office", "Score", "Bottom Office", "Score"]],
-        body: officeTable,
+        startY: y,
+        head: [["Top Office", "Score", "Lowest Office", "Score"]],
+        body: officeTable.length ? officeTable : [["No data available", "", "", ""]],
         theme: "grid",
         styles: {
         font: "helvetica",
-        fontSize: 8.5,
-        cellPadding: 2.5,
-        textColor: [35, 35, 35],
-        lineColor: [205, 205, 205],
-        lineWidth: 0.15
+        fontSize: 9,
+        cellPadding: 3,
+        textColor: [30, 30, 30],
+        lineColor: [210, 210, 210],
+        lineWidth: 0.2
         },
         headStyles: {
-        fillColor: [124, 10, 2],
-        textColor: [255, 255, 255],
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
         fontStyle: "bold"
         },
         alternateRowStyles: {
-        fillColor: [248, 248, 248]
+        fillColor: [250, 250, 250]
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: margin, right: margin }
         });
 
-        let nextY = doc.lastAutoTable.finalY + 12;
+        y = doc.lastAutoTable.finalY + 10;
+        y = ensureSpace(y, 20);
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(124, 10, 2);
-        doc.text("Appendix B. Lowest Survey Questions", 14, nextY);
-        doc.setTextColor(0, 0, 0);
+        y = addSectionTitle("Appendix B. Lowest Service Quality Indicators", y);
 
         doc.autoTable({
-        startY: nextY + 6,
-        head: [["Question", "Average Score"]],
-        body: lowestQuestions.map(x => [
+        startY: y,
+        head: [["Question / Indicator", "Average Score"]],
+        body: lowestQuestions.length
+        ? lowestQuestions.map(x => [
         getProp(x, "Question", "question") || "",
         Number(getProp(x, "Score", "score") || 0).toFixed(2)
-        ]),
+        ])
+        : [["No data available", ""]],
         theme: "grid",
         styles: {
         font: "helvetica",
-        fontSize: 8.5,
-        cellPadding: 2.5,
-        textColor: [35, 35, 35],
-        lineColor: [205, 205, 205],
-        lineWidth: 0.15
+        fontSize: 9,
+        cellPadding: 3,
+        textColor: [30, 30, 30],
+        lineColor: [210, 210, 210],
+        lineWidth: 0.2
         },
         headStyles: {
-        fillColor: [124, 10, 2],
-        textColor: [255, 255, 255],
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
         fontStyle: "bold"
         },
         alternateRowStyles: {
-        fillColor: [248, 248, 248]
+        fillColor: [250, 250, 250]
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: margin, right: margin }
         });
 
         addFooter(3);
@@ -877,7 +859,6 @@
         const fileDate = new Date().toISOString().slice(0, 10);
         doc.save(`ARTA_Analytics_Report_${fileDate}.pdf`);
         }
-
         if (generateAnalyticsReportBtn) {
         generateAnalyticsReportBtn.addEventListener("click", generateAnalyticsPdf);
         }
