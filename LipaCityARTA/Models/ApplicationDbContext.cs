@@ -1,4 +1,4 @@
-﻿using LipaCityARTA.Model;
+﻿using LipaCityARTA.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LipaCityARTA.Models

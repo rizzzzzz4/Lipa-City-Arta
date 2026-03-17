@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LipaCityARTA.Model
+namespace LipaCityARTA.Models
 {
     public class AdminUser
     {
