@@ -15,7 +15,6 @@
 
 .complaint-card {
     background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 32px 34px;
     border-radius: 22px;
@@ -50,11 +49,12 @@
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 8px;
+    max-width: 760px;
 }
 
 .complaint-input {
     width: 100%;
-    max-width: 560px;
+    max-width: 760px;
     min-height: 46px;
     padding: 12px 14px;
     border-radius: 12px;
@@ -80,7 +80,7 @@ select.complaint-input {
 
 .complaint-textarea {
     width: 100%;
-    max-width: 720px;
+    max-width: 760px;
     min-height: 130px;
     resize: vertical;
 }

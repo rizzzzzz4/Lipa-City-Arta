@@ -28,7 +28,5 @@ namespace LipaCityARTA.Models
         public DateTime DateSubmitted { get; set; } = DateTime.Now;
 
         public string TrackingId { get; set; } = string.Empty;
-
-        public DateTime? ExpiryDate { get; set; }
     }
 }

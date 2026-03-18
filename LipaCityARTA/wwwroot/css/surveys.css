@@ -15,8 +15,6 @@
 
 .survey-card {
     background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     padding: 32px 34px;
     border-radius: 22px;
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);

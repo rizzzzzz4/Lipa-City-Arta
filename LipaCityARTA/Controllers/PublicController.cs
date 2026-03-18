@@ -49,9 +49,6 @@ namespace LipaCityARTA.Controllers
             return View();
         }
 
-        // ===============================
-        // Complaint Submit (POST)
-        // ===============================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Complaint(Complaint model)
@@ -81,6 +78,7 @@ namespace LipaCityARTA.Controllers
         }
 
         private string GenerateTrackingId()
+
         {
             return "ARTA-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
         }

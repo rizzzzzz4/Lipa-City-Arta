@@ -148,16 +148,11 @@ C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\rjsmcshtml.dswa.cache.j
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\scopedcss\bundle\LipaCityARTA.styles.css
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\scopedcss\projectbundle\LipaCityARTA.bundle.scp.css
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-7vtk34vzmv-7vtk34vzmv.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-wq30uwbas1-wq30uwbas1.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-idfbcesphp-idfbcesphp.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\jxj9uqo88z-{0}-mh3hlz8vsj-mh3hlz8vsj.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\2d6w2jgqmw-{0}-ea2i7p9p8o-ea2i7p9p8o.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\drssml2cus-{0}-5zwz6xpg5n-5zwz6xpg5n.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ni37bfvt8w-{0}-r18igrugyb-r18igrugyb.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\f9dxrkc6px-{0}-m6awsl3gre-m6awsl3gre.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\m0qcxjzq2m-{0}-ycf385a9qg-ycf385a9qg.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\z4w0wb7rn5-{0}-jgfdcd8ehg-jgfdcd8ehg.gz
-C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\frzkqqqoa2-{0}-bykv7s3dg2-bykv7s3dg2.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\6duc5epdg7-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\6u0hwr6dfc-{0}-6b0mow6r40-6b0mow6r40.gz
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\kv31ndbua2-{0}-m3ql9jz570-m3ql9jz570.gz
@@ -234,3 +229,8 @@ C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\refint\LipaCityARTA.dll
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\LipaCityARTA.pdb
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\LipaCityARTA.genruntimeconfig.cache
 C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\ref\LipaCityARTA.dll
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\drssml2cus-{0}-iot9ublqt2-iot9ublqt2.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\ni37bfvt8w-{0}-96vxh174dx-96vxh174dx.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\m0qcxjzq2m-{0}-59iz6e7mkv-59iz6e7mkv.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\z4w0wb7rn5-{0}-476kxwl2dq-476kxwl2dq.gz
+C:\ARTA_Lipa\LipaCityARTA\LipaCityARTA\obj\Debug\net10.0\compressed\frzkqqqoa2-{0}-k0407c04vf-k0407c04vf.gz

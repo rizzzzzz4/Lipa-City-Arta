@@ -445,7 +445,7 @@ namespace LipaCityARTA.Controllers
         public IActionResult AdvanceComplaintStatus(int id)
         {
             var complaint = _context.Complaints.FirstOrDefault(c => c.Id == id);
-
+                
             if (complaint == null)
                 return NotFound();
 
@@ -458,6 +458,8 @@ namespace LipaCityARTA.Controllers
                 complaint.Status = "Resolved";
 
             _context.SaveChanges();
+
+            var list = _context.Complaints.ToList();
 
             return RedirectToAction("Complaints");
         }
