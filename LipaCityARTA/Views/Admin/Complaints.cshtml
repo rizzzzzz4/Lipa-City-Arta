@@ -5,20 +5,35 @@
     ViewData["Title"] = "Complaints";
 
     var complaints = Model.Complaints ?? new List<LipaCityARTA.Models.Complaint>();
+    int overdueDays = 3;
+
+    string EffectiveStatus(LipaCityARTA.Models.Complaint c)
+    {
+        var status = (c.Status ?? "Pending").Trim();
+
+        if (status != "Resolved" &&
+            status != "Escalated" &&
+            c.DateSubmitted <= DateTime.Now.AddDays(-overdueDays))
+        {
+            return "Overdue";
+        }
+
+        return status;
+    }
 
     var pendingComplaints = complaints
-        .Where(c => (c.Status ?? "Pending").Trim() == "Pending")
+        .Where(c => EffectiveStatus(c) == "Pending")
         .ToList();
 
     var inProgressComplaints = complaints
         .Where(c =>
-            (c.Status ?? "").Trim() == "In Progress" ||
-            (c.Status ?? "").Trim() == "Overdue" ||
-            (c.Status ?? "").Trim() == "Escalated")
+            EffectiveStatus(c) == "In Progress" ||
+            EffectiveStatus(c) == "Overdue" ||
+            EffectiveStatus(c) == "Escalated")
         .ToList();
 
     var resolvedComplaints = complaints
-        .Where(c => (c.Status ?? "").Trim() == "Resolved")
+        .Where(c => EffectiveStatus(c) == "Resolved")
         .ToList();
 }
 
@@ -38,7 +53,7 @@
         <div class="c-header-meta">
             <div class="c-meta-card">
                 <span>Board Summary</span>
-                <strong>@complaints.Count complaint records</strong>
+                <strong id="boardSummaryCount">@complaints.Count complaint records</strong>
             </div>
         </div>
     </div>
@@ -56,9 +71,10 @@
                 <select id="filterOffice">
                     <option value="">All</option>
                     @foreach (var office in complaints
-                                        .Where(c => !string.IsNullOrWhiteSpace(c.Office))
-                                        .Select(c => c.Office)
-                                        .Distinct())
+                                                            .Where(c => !string.IsNullOrWhiteSpace(c.Office))
+                                                            .Select(c => c.Office)
+                                                            .Distinct()
+                                                            .OrderBy(x => x))
                     {
                         <option value="@office">@office</option>
                     }
@@ -70,9 +86,10 @@
                 <select id="filterClient">
                     <option value="">All</option>
                     @foreach (var type in complaints
-                                        .Where(c => !string.IsNullOrWhiteSpace(c.ClientType))
-                                        .Select(c => c.ClientType)
-                                        .Distinct())
+                                                            .Where(c => !string.IsNullOrWhiteSpace(c.ClientType))
+                                                            .Select(c => c.ClientType)
+                                                            .Distinct()
+                                                            .OrderBy(x => x))
                     {
                         <option value="@type">@type</option>
                     }
@@ -93,7 +110,7 @@
                 Apply Filters
             </button>
 
-            <button id="generateReportBtn" class="c-export-btn">
+            <button type="button" id="generateReportBtn" class="c-export-btn">
                 Generate Report
             </button>
 
@@ -103,31 +120,31 @@
     <div class="c-kpi-grid">
         <div class="c-kpi-card">
             <div class="c-k-title">Open</div>
-            <div class="c-k-value c-open">@Model.OpenCount</div>
+            <div class="c-k-value c-open" id="openCount">@Model.OpenCount</div>
             <div class="c-k-sub">Complaints awaiting completion</div>
         </div>
 
         <div class="c-kpi-card">
             <div class="c-k-title">Overdue</div>
-            <div class="c-k-value c-overdue">@Model.OverdueCount</div>
+            <div class="c-k-value c-overdue" id="overdueCount">@Model.OverdueCount</div>
             <div class="c-k-sub">Cases needing urgent attention</div>
         </div>
 
         <div class="c-kpi-card">
             <div class="c-k-title">New Complaints</div>
-            <div class="c-k-value">@Model.NewComplaints</div>
+            <div class="c-k-value" id="newComplaintsCount">@Model.NewComplaints</div>
             <div class="c-k-sub">Recently submitted complaints</div>
         </div>
 
         <div class="c-kpi-card">
             <div class="c-k-title">Resolved</div>
-            <div class="c-k-value c-resolved">@Model.ResolvedCount</div>
+            <div class="c-k-value c-resolved" id="resolvedCount">@Model.ResolvedCount</div>
             <div class="c-k-sub">Cases already completed</div>
         </div>
 
         <div class="c-kpi-card">
             <div class="c-k-title">Backlog Average</div>
-            <div class="c-k-value">@Model.BacklogAvg</div>
+            <div class="c-k-value" id="backlogCount">@Model.BacklogAvg</div>
             <div class="c-k-sub">Average pending complaint load</div>
         </div>
     </div>
@@ -135,13 +152,13 @@
     <div class="c-tabs-card">
         <div class="c-tabs-header">
             <button type="button" class="c-tab-btn active" data-tab="pendingTab">
-                Pending <span>@pendingComplaints.Count</span>
+                Pending <span id="pendingTabCount">@pendingComplaints.Count</span>
             </button>
             <button type="button" class="c-tab-btn" data-tab="progressTab">
-                In Progress <span>@inProgressComplaints.Count</span>
+                In Progress <span id="progressTabCount">@inProgressComplaints.Count</span>
             </button>
             <button type="button" class="c-tab-btn" data-tab="resolvedTab">
-                Resolved <span>@resolvedComplaints.Count</span>
+                Resolved <span id="resolvedTabCount">@resolvedComplaints.Count</span>
             </button>
         </div>
 
@@ -172,13 +189,15 @@
                         <tbody>
                             @foreach (var item in pendingComplaints)
                             {
+                                var effectiveStatus = EffectiveStatus(item);
+
                                 var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
-                                ? item.Reason.Substring(0, 40) + "..."
-                                : item.Reason;
+                                    ? item.Reason.Substring(0, 40) + "..."
+                                    : item.Reason;
 
                                 var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
-                                ? item.Message.Substring(0, 50) + "..."
-                                : item.Message;
+                                    ? item.Message.Substring(0, 50) + "..."
+                                    : item.Message;
 
                                 <tr class="c-ticket"
                                     data-tabgroup="pending"
@@ -188,7 +207,7 @@
                                     data-reason="@item.Reason"
                                     data-message="@item.Message"
                                     data-email="@item.Email"
-                                    data-status="Pending"
+                                    data-status="@effectiveStatus"
                                     data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
                                     <td><span class="c-track-id">@item.TrackingId</span></td>
@@ -221,7 +240,6 @@
             }
         </div>
 
-        <!-- In Progress Tab -->
         <div class="c-tab-panel" id="progressTab">
             <div class="c-tab-panel-head c-tab-progress">
                 <div>
@@ -249,20 +267,20 @@
                         <tbody>
                             @foreach (var item in inProgressComplaints)
                             {
-                                var s = (item.Status ?? "In Progress").Trim();
+                                var s = EffectiveStatus(item);
 
                                 var statusClass =
-                                s == "Escalated" ? "c-st-escalated" :
-                                s == "Overdue" ? "c-st-overdue" :
-                                                        "c-st-inprogress";
+                                    s == "Escalated" ? "c-st-escalated" :
+                                    s == "Overdue" ? "c-st-overdue" :
+                                    "c-st-inprogress";
 
                                 var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
-                                ? item.Reason.Substring(0, 40) + "..."
-                                : item.Reason;
+                                    ? item.Reason.Substring(0, 40) + "..."
+                                    : item.Reason;
 
                                 var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
-                                ? item.Message.Substring(0, 50) + "..."
-                                : item.Message;
+                                    ? item.Message.Substring(0, 50) + "..."
+                                    : item.Message;
 
                                 <tr class="c-ticket"
                                     data-tabgroup="progress"
@@ -305,7 +323,6 @@
             }
         </div>
 
-        <!-- Resolved Tab -->
         <div class="c-tab-panel" id="resolvedTab">
             <div class="c-tab-panel-head c-tab-resolved">
                 <div>
@@ -333,13 +350,15 @@
                         <tbody>
                             @foreach (var item in resolvedComplaints)
                             {
+                                var effectiveStatus = EffectiveStatus(item);
+
                                 var shortReason = !string.IsNullOrWhiteSpace(item.Reason) && item.Reason.Length > 40
-                                ? item.Reason.Substring(0, 40) + "..."
-                                : item.Reason;
+                                    ? item.Reason.Substring(0, 40) + "..."
+                                    : item.Reason;
 
                                 var shortMessage = !string.IsNullOrWhiteSpace(item.Message) && item.Message.Length > 50
-                                ? item.Message.Substring(0, 50) + "..."
-                                : item.Message;
+                                    ? item.Message.Substring(0, 50) + "..."
+                                    : item.Message;
 
                                 <tr class="c-ticket"
                                     data-tabgroup="resolved"
@@ -349,7 +368,7 @@
                                     data-reason="@item.Reason"
                                     data-message="@item.Message"
                                     data-email="@item.Email"
-                                    data-status="Resolved"
+                                    data-status="@effectiveStatus"
                                     data-date="@item.DateSubmitted.ToString("yyyy-MM-dd")">
 
                                     <td><span class="c-track-id">@item.TrackingId</span></td>
@@ -486,6 +505,67 @@
         });
         });
 
+        function updateDashboardCounts() {
+        const visibleTickets = Array.from(document.querySelectorAll(".c-ticket"))
+        .filter(ticket => ticket.style.display !== "none");
+
+        const pendingCount = visibleTickets.filter(ticket =>
+        (ticket.dataset.status || "").trim() === "Pending"
+        ).length;
+
+        const progressCount = visibleTickets.filter(ticket => {
+        const s = (ticket.dataset.status || "").trim();
+        return s === "In Progress" || s === "Overdue" || s === "Escalated";
+        }).length;
+
+        const resolvedCount = visibleTickets.filter(ticket =>
+        (ticket.dataset.status || "").trim() === "Resolved"
+        ).length;
+
+        const overdueCount = visibleTickets.filter(ticket =>
+        (ticket.dataset.status || "").trim() === "Overdue"
+        ).length;
+
+        const openCount = visibleTickets.filter(ticket => {
+        const s = (ticket.dataset.status || "").trim();
+        return s === "Pending" || s === "In Progress" || s === "Overdue" || s === "Escalated";
+        }).length;
+
+        const newComplaintsCount = visibleTickets.filter(ticket => {
+        const ticketDate = ticket.dataset.date || "";
+        if (!ticketDate) return false;
+
+        const today = new Date();
+        const d = new Date(ticketDate + "T00:00:00");
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+
+        return d >= new Date(sevenDaysAgo.toDateString());
+        }).length;
+
+        const boardSummaryCountEl = document.getElementById("boardSummaryCount");
+        const pendingTabCountEl = document.getElementById("pendingTabCount");
+        const progressTabCountEl = document.getElementById("progressTabCount");
+        const resolvedTabCountEl = document.getElementById("resolvedTabCount");
+
+        const openCountEl = document.getElementById("openCount");
+        const overdueCountEl = document.getElementById("overdueCount");
+        const newComplaintsCountEl = document.getElementById("newComplaintsCount");
+        const resolvedCountEl = document.getElementById("resolvedCount");
+        const backlogCountEl = document.getElementById("backlogCount");
+
+        if (boardSummaryCountEl) boardSummaryCountEl.textContent = `${visibleTickets.length} complaint records`;
+        if (pendingTabCountEl) pendingTabCountEl.textContent = pendingCount;
+        if (progressTabCountEl) progressTabCountEl.textContent = progressCount;
+        if (resolvedTabCountEl) resolvedTabCountEl.textContent = resolvedCount;
+
+        if (openCountEl) openCountEl.textContent = openCount;
+        if (overdueCountEl) overdueCountEl.textContent = overdueCount;
+        if (newComplaintsCountEl) newComplaintsCountEl.textContent = newComplaintsCount;
+        if (resolvedCountEl) resolvedCountEl.textContent = resolvedCount;
+        if (backlogCountEl) backlogCountEl.textContent = openCount;
+        }
+
         function applyFilters() {
         const q = (search?.value || "").toLowerCase().trim();
         const officeValue = (filterOffice?.value || "").toLowerCase().trim();
@@ -527,6 +607,8 @@
         panel.appendChild(div);
         }
         });
+
+        updateDashboardCounts();
         }
 
         async function loadImageAsBase64(url) {

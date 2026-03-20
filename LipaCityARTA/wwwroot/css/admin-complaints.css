@@ -204,7 +204,6 @@
     color: var(--c-good);
 }
 
-/* TABS CONTAINER */
 .c-tabs-card {
     background: #fff;
     border: 1px solid var(--c-border);
@@ -290,7 +289,6 @@
     background: linear-gradient(90deg, #166534 0%, #15803d 100%);
 }
 
-/* TABLE */
 .c-table-wrap {
     overflow: auto;
     background: #fff;
@@ -581,6 +579,20 @@
         background: #5a0701;
     }
 
+.c-filter-btn {
+    border: none;
+    background: #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .c-filter-btn:hover {
+        background: maroon;
+    }
 .c-main-table td {
     word-break: break-word;
 }

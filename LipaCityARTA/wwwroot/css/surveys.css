@@ -24,7 +24,7 @@
 
     .survey-card h2 {
         margin: 10px 0 22px;
-        font-size: clamp(32px, 4.2vw, 54px);
+        font-size: 45px;
         color: #111;
         line-height: 1.08;
     }
@@ -38,7 +38,7 @@
         margin-bottom: 10px;
         font-weight: 600;
         color: #222;
-        font-size: 16px;
+        font-size: 20px;
     }
 
 .survey-input {
@@ -145,9 +145,9 @@
 
 .star {
     cursor: pointer;
-    font-size: 28px;
+    font-size: 50px;
     color: #d0d0d0;
-    transition: transform 0.2s, color 0.2s;
+    transition: transform 0.2s, color 0.2s; 
 }
 
     .star.selected,

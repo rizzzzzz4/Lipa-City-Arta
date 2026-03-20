@@ -325,11 +325,8 @@ namespace LipaCityARTA.Controllers
 
             var q = _context.Complaints.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(office))
+            if (!string.IsNullOrWhiteSpace(office) && office != "All")
                 q = q.Where(c => c.Office == office);
-
-            if (!string.IsNullOrWhiteSpace(status))
-                q = q.Where(c => c.Status == status);
 
             if (dateFrom.HasValue)
                 q = q.Where(c => c.DateSubmitted >= dateFrom.Value.Date);
@@ -348,7 +345,7 @@ namespace LipaCityARTA.Controllers
 
             int overdueDays = 3;
 
-            foreach (var complaint in list)
+            string EffectiveStatus(Complaint complaint)
             {
                 var currentStatus = (complaint.Status ?? "Pending").Trim();
 
@@ -356,8 +353,17 @@ namespace LipaCityARTA.Controllers
                     currentStatus != "Escalated" &&
                     complaint.DateSubmitted <= DateTime.Now.AddDays(-overdueDays))
                 {
-                    complaint.Status = "Overdue";
+                    return "Overdue";
                 }
+
+                return currentStatus;
+            }
+
+            if (!string.IsNullOrWhiteSpace(status) && status != "All")
+            {
+                list = list
+                    .Where(c => EffectiveStatus(c) == status)
+                    .ToList();
             }
 
             var vm = new ComplaintListViewModel
@@ -372,28 +378,28 @@ namespace LipaCityARTA.Controllers
 
                 Total = list.Count,
 
-                Pending = list.Count(c => (c.Status ?? "").Trim() == "Pending"),
-                InProgress = list.Count(c => (c.Status ?? "").Trim() == "In Progress"),
-                Resolved = list.Count(c => (c.Status ?? "").Trim() == "Resolved"),
-                Escalated = list.Count(c => (c.Status ?? "").Trim() == "Escalated"),
+                Pending = list.Count(c => EffectiveStatus(c) == "Pending"),
+                InProgress = list.Count(c => EffectiveStatus(c) == "In Progress"),
+                Resolved = list.Count(c => EffectiveStatus(c) == "Resolved"),
+                Escalated = list.Count(c => EffectiveStatus(c) == "Escalated"),
 
                 OpenCount = list.Count(c =>
-                    (c.Status ?? "").Trim() == "Pending" ||
-                    (c.Status ?? "").Trim() == "In Progress" ||
-                    (c.Status ?? "").Trim() == "Overdue" ||
-                    (c.Status ?? "").Trim() == "Escalated"),
+                    EffectiveStatus(c) == "Pending" ||
+                    EffectiveStatus(c) == "In Progress" ||
+                    EffectiveStatus(c) == "Overdue" ||
+                    EffectiveStatus(c) == "Escalated"),
 
-                OverdueCount = list.Count(c => (c.Status ?? "").Trim() == "Overdue"),
+                OverdueCount = list.Count(c => EffectiveStatus(c) == "Overdue"),
                 UnassignedCount = 0,
 
                 NewComplaints = list.Count(c => c.DateSubmitted >= DateTime.Today.AddDays(-7)),
-                ResolvedCount = list.Count(c => (c.Status ?? "").Trim() == "Resolved"),
+                ResolvedCount = list.Count(c => EffectiveStatus(c) == "Resolved"),
 
                 BacklogAvg = list.Count(c =>
-                    (c.Status ?? "").Trim() == "Pending" ||
-                    (c.Status ?? "").Trim() == "In Progress" ||
-                    (c.Status ?? "").Trim() == "Overdue" ||
-                    (c.Status ?? "").Trim() == "Escalated"),
+                    EffectiveStatus(c) == "Pending" ||
+                    EffectiveStatus(c) == "In Progress" ||
+                    EffectiveStatus(c) == "Overdue" ||
+                    EffectiveStatus(c) == "Escalated"),
 
                 ByOffice = list
                     .GroupBy(c => string.IsNullOrWhiteSpace(c.Office) ? "Unknown" : c.Office)
@@ -417,8 +423,6 @@ namespace LipaCityARTA.Controllers
             return View(vm);
         }
 
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(int id, string status)
@@ -431,8 +435,8 @@ namespace LipaCityARTA.Controllers
 
             complaint.Status = status;
 
-           // if (status == "Resolved")
-               // complaint.ResolvedAt = DateTime.Now;
+            //if (status == "Resolved")
+              //  complaint.ResolvedAt = DateTime.Now;
           //  else
               //  complaint.ResolvedAt = null;
 
