@@ -4,6 +4,7 @@ using LipaCityARTA.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LipaCityARTA.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319124829_AddComplaintWorkflowFields")]
+    partial class AddComplaintWorkflowFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,35 +112,6 @@ namespace LipaCityARTA.Migrations
                     b.ToTable("Complaints");
                 });
 
-            modelBuilder.Entity("LipaCityARTA.Models.ComplaintActionHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ActionNote")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ComplaintId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("StatusAtThatTime")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComplaintId");
-
-                    b.ToTable("ComplaintActionHistories");
-                });
-
             modelBuilder.Entity("LipaCityARTA.Models.SurveyResponse", b =>
                 {
                     b.Property<int>("Id")
@@ -209,22 +183,6 @@ namespace LipaCityARTA.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SurveyResponses");
-                });
-
-            modelBuilder.Entity("LipaCityARTA.Models.ComplaintActionHistory", b =>
-                {
-                    b.HasOne("LipaCityARTA.Models.Complaint", "Complaint")
-                        .WithMany("ActionHistories")
-                        .HasForeignKey("ComplaintId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Complaint");
-                });
-
-            modelBuilder.Entity("LipaCityARTA.Models.Complaint", b =>
-                {
-                    b.Navigation("ActionHistories");
                 });
 #pragma warning restore 612, 618
         }

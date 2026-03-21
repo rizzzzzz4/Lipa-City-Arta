@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using LipaCityARTA.Models;
+﻿using LipaCityARTA.Models;
 using LipaCityARTA.ViewModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LipaCityARTA.Controllers
 {
@@ -230,17 +231,17 @@ namespace LipaCityARTA.Controllers
                 surveysQ.Any() ? surveysQ.Average(selector) : 0;
 
             var questionAverages = new List<QuestionMetric>
-    {
-        new() { Question = "SQD0", Score = AvgQ(s => s.SQD0) },
-        new() { Question = "SQD1", Score = AvgQ(s => s.SQD1) },
-        new() { Question = "SQD2", Score = AvgQ(s => s.SQD2) },
-        new() { Question = "SQD3", Score = AvgQ(s => s.SQD3) },
-        new() { Question = "SQD4", Score = AvgQ(s => s.SQD4) },
-        new() { Question = "SQD5", Score = AvgQ(s => s.SQD5) },
-        new() { Question = "SQD6", Score = AvgQ(s => s.SQD6) },
-        new() { Question = "SQD7", Score = AvgQ(s => s.SQD7) },
-        new() { Question = "SQD8", Score = AvgQ(s => s.SQD8) }
-    };
+            {
+                new() { Question = "SQD0", Score = AvgQ(s => s.SQD0) },
+                new() { Question = "SQD1", Score = AvgQ(s => s.SQD1) },
+                new() { Question = "SQD2", Score = AvgQ(s => s.SQD2) },
+                new() { Question = "SQD3", Score = AvgQ(s => s.SQD3) },
+                new() { Question = "SQD4", Score = AvgQ(s => s.SQD4) },
+                new() { Question = "SQD5", Score = AvgQ(s => s.SQD5) },
+                new() { Question = "SQD6", Score = AvgQ(s => s.SQD6) },
+                new() { Question = "SQD7", Score = AvgQ(s => s.SQD7) },
+                new() { Question = "SQD8", Score = AvgQ(s => s.SQD8) }
+            };
 
             var lowestQuestions = questionAverages
                 .OrderBy(x => x.Score)
@@ -248,30 +249,30 @@ namespace LipaCityARTA.Controllers
                 .ToList();
 
             var sqdLabels = new List<string>
-    {
-        "SQD0 – Overall Satisfaction",
-        "SQD1 – Time Efficiency",
-        "SQD2 – Process Compliance",
-        "SQD3 – Process Simplicity",
-        "SQD4 – Information Accessibility",
-        "SQD5 – Reasonable Fees",
-        "SQD6 – Fairness",
-        "SQD7 – Staff Courtesy",
-        "SQD8 – Service Outcome"
-    };
+            {
+                "SQD0 – Overall Satisfaction",
+                "SQD1 – Time Efficiency",
+                "SQD2 – Process Compliance",
+                "SQD3 – Process Simplicity",
+                "SQD4 – Information Accessibility",
+                "SQD5 – Reasonable Fees",
+                "SQD6 – Fairness",
+                "SQD7 – Staff Courtesy",
+                "SQD8 – Service Outcome"
+            };
 
             var sqdScores = new List<double>
-    {
-        AvgQ(s => s.SQD0),
-        AvgQ(s => s.SQD1),
-        AvgQ(s => s.SQD2),
-        AvgQ(s => s.SQD3),
-        AvgQ(s => s.SQD4),
-        AvgQ(s => s.SQD5),
-        AvgQ(s => s.SQD6),
-        AvgQ(s => s.SQD7),
-        AvgQ(s => s.SQD8)
-    };
+            {
+                AvgQ(s => s.SQD0),
+                AvgQ(s => s.SQD1),
+                AvgQ(s => s.SQD2),
+                AvgQ(s => s.SQD3),
+                AvgQ(s => s.SQD4),
+                AvgQ(s => s.SQD5),
+                AvgQ(s => s.SQD6),
+                AvgQ(s => s.SQD7),
+                AvgQ(s => s.SQD8)
+            };
 
             double avgSat = surveysQ.Any()
                 ? surveysQ.AsEnumerable().Average(RowSatisfaction)
@@ -305,6 +306,7 @@ namespace LipaCityARTA.Controllers
 
             return View(vm);
         }
+
         public IActionResult SurveyReports()
         {
             if (!IsAdminLoggedIn())
@@ -323,7 +325,9 @@ namespace LipaCityARTA.Controllers
             if (!IsAdminLoggedIn())
                 return RedirectToAction("Login");
 
-            var q = _context.Complaints.AsQueryable();
+            var q = _context.Complaints
+                .Include(c => c.ActionHistories)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(office) && office != "All")
                 q = q.Where(c => c.Office == office);
@@ -341,7 +345,9 @@ namespace LipaCityARTA.Controllers
                     (c.Message ?? "").Contains(search) ||
                     (c.Email ?? "").Contains(search));
 
-            var list = q.OrderByDescending(c => c.DateSubmitted).ToList();
+            var list = q
+                .OrderByDescending(c => c.DateSubmitted)
+                .ToList();
 
             int overdueDays = 3;
 
@@ -435,11 +441,6 @@ namespace LipaCityARTA.Controllers
 
             complaint.Status = status;
 
-            //if (status == "Resolved")
-              //  complaint.ResolvedAt = DateTime.Now;
-          //  else
-              //  complaint.ResolvedAt = null;
-
             _context.SaveChanges();
             return RedirectToAction("Complaints");
         }
@@ -448,8 +449,11 @@ namespace LipaCityARTA.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AdvanceComplaintStatus(int id)
         {
+            if (!IsAdminLoggedIn())
+                return RedirectToAction("Login");
+
             var complaint = _context.Complaints.FirstOrDefault(c => c.Id == id);
-                
+
             if (complaint == null)
                 return NotFound();
 
@@ -457,14 +461,99 @@ namespace LipaCityARTA.Controllers
 
             if (status == "Pending")
                 complaint.Status = "In Progress";
-
             else if (status == "In Progress" || status == "Overdue" || status == "Escalated")
                 complaint.Status = "Resolved";
 
             _context.SaveChanges();
 
-            var list = _context.Complaints.ToList();
+            return RedirectToAction("Complaints");
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateComplaintStatus(int id, string status, string? adminActionNote, bool isCaseClosed = false)
+        {
+            if (!IsAdminLoggedIn())
+                return RedirectToAction("Login");
+
+            var complaint = _context.Complaints
+                .Include(c => c.ActionHistories)
+                .FirstOrDefault(c => c.Id == id);
+
+            if (complaint == null)
+            {
+                return NotFound();
+            }
+
+            var currentStatus = (complaint.Status ?? "").Trim();
+
+            if (status == "In Progress")
+            {
+                if (string.IsNullOrWhiteSpace(adminActionNote))
+                {
+                    TempData["Error"] = "Please enter an action note before marking this complaint as In Progress.";
+                    return RedirectToAction("Complaints");
+                }
+
+                complaint.Status = "In Progress";
+                complaint.IsCaseClosed = false;
+                complaint.ResolvedAt = null;
+
+                // keep latest note in main complaint if you still want it
+                complaint.AdminActionNote = adminActionNote.Trim();
+
+                _context.ComplaintActionHistories.Add(new ComplaintActionHistory
+                {
+                    ComplaintId = complaint.Id,
+                    ActionNote = adminActionNote.Trim(),
+                    StatusAtThatTime = "In Progress",
+                    CreatedAt = DateTime.Now
+                });
+            }
+            else if (status == "Resolved")
+            {
+                if (currentStatus != "In Progress" && currentStatus != "Overdue" && currentStatus != "Escalated")
+                {
+                    TempData["Error"] = "Complaint must first be in progress before it can be resolved.";
+                    return RedirectToAction("Complaints");
+                }
+
+                if (!isCaseClosed)
+                {
+                    TempData["Error"] = "Please confirm that the case is closed before resolving the complaint.";
+                    return RedirectToAction("Complaints");
+                }
+
+                if (string.IsNullOrWhiteSpace(adminActionNote))
+                {
+                    TempData["Error"] = "Please enter a final action note before resolving the complaint.";
+                    return RedirectToAction("Complaints");
+                }
+
+                complaint.Status = "Resolved";
+                complaint.IsCaseClosed = true;
+                complaint.ResolvedAt = DateTime.Now;
+
+                // keep latest note in main complaint if you still want it
+                complaint.AdminActionNote = adminActionNote.Trim();
+
+                _context.ComplaintActionHistories.Add(new ComplaintActionHistory
+                {
+                    ComplaintId = complaint.Id,
+                    ActionNote = adminActionNote.Trim(),
+                    StatusAtThatTime = "Resolved",
+                    CreatedAt = DateTime.Now
+                });
+            }
+            else
+            {
+                TempData["Error"] = "Invalid complaint status update.";
+                return RedirectToAction("Complaints");
+            }
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Complaint updated successfully.";
             return RedirectToAction("Complaints");
         }
 

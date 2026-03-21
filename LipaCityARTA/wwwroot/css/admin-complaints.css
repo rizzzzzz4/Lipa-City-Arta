@@ -116,7 +116,8 @@
 
     .c-search-wrap input,
     .c-filter input,
-    .c-filter select {
+    .c-filter select,
+    .c-input {
         width: 100%;
         min-height: 44px;
         border: 1px solid #d1d5db;
@@ -127,11 +128,13 @@
         color: var(--c-text);
         outline: none;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
     }
 
         .c-search-wrap input:focus,
         .c-filter input:focus,
-        .c-filter select:focus {
+        .c-filter select:focus,
+        .c-input:focus {
             border-color: var(--c-accent);
             box-shadow: 0 0 0 3px rgba(124, 10, 2, 0.08);
         }
@@ -139,6 +142,38 @@
 .c-filter {
     min-width: 300px;
 }
+
+.c-filter-btn {
+    border: none;
+    background: #e5e7eb;
+    color: #111827;
+    border-radius: 12px;
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .c-filter-btn:hover {
+        background: #d1d5db;
+    }
+
+.c-export-btn {
+    border: none;
+    background: #7c0a02;
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .c-export-btn:hover {
+        background: #5a0701;
+    }
 
 .c-kpi-grid {
     display: grid;
@@ -211,6 +246,8 @@
     box-shadow: var(--c-shadow);
     overflow: hidden;
     margin-top: 18px;
+    position: relative;
+    z-index: 1;
 }
 
 .c-tabs-header {
@@ -253,6 +290,8 @@
 
 .c-tab-panel {
     display: none;
+    position: relative;
+    z-index: 1;
 }
 
     .c-tab-panel.active {
@@ -292,6 +331,8 @@
 .c-table-wrap {
     overflow: auto;
     background: #fff;
+    position: relative;
+    z-index: 1;
 }
 
 .c-main-table {
@@ -299,6 +340,8 @@
     min-width: 980px;
     border-collapse: collapse;
     background: #fff;
+    position: relative;
+    z-index: 1;
 }
 
     .c-main-table thead th {
@@ -322,6 +365,9 @@
         color: #111827;
         border-bottom: 1px solid #eef2f7;
         vertical-align: middle;
+        word-break: break-word;
+        position: relative;
+        overflow: visible;
     }
 
     .c-main-table tbody tr:hover {
@@ -338,15 +384,40 @@
     }
 
     .c-main-table td:nth-child(3) {
-        min-width: 190px;
-        max-width: 260px;
+        min-width: 180px;
+        max-width: 240px;
     }
 
     .c-main-table td:nth-child(4) {
-        min-width: 140px;
+        min-width: 200px;
+        max-width: 280px;
     }
 
+    .c-main-table td:nth-child(5) {
+        min-width: 160px;
+    }
+
+    .c-main-table td:nth-child(6) {
+        min-width: 130px;
+    }
+
+    .c-main-table th:last-child,
+    .c-main-table td:last-child {
+        min-width: 140px;
+        position: relative;
+        z-index: 20;
+        overflow: visible;
+    }
+
+.c-track-id {
+    font-weight: 700;
+    color: #9d0b0f;
+    letter-spacing: 0.4px;
+}
+
 .c-table-actions {
+    position: relative;
+    z-index: 30;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -391,6 +462,16 @@
     justify-content: center;
 }
 
+.c-mini-btn,
+.c-start-btn,
+.c-view-btn {
+    position: relative;
+    z-index: 31;
+    pointer-events: auto;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
 .c-mini-btn {
     border: none;
     background: var(--c-accent);
@@ -399,9 +480,7 @@
     padding: 18px 9px;
     font-size: 12px;
     font-weight: 700;
-    cursor: pointer;
     transition: 0.2s ease;
-    white-space: nowrap;
 }
 
     .c-mini-btn:hover {
@@ -416,9 +495,7 @@
     padding: 18px 15px;
     font-size: 12px;
     font-weight: 700;
-    cursor: pointer;
     transition: 0.2s ease;
-    white-space: nowrap;
 }
 
     .c-start-btn:hover {
@@ -433,7 +510,6 @@
     padding: 18px 14px;
     font-size: 12px;
     font-weight: 800;
-    cursor: pointer;
     transition: 0.2s ease;
 }
 
@@ -473,10 +549,13 @@
 .c-modal-box {
     width: 100%;
     max-width: 680px;
+    max-height: 90vh;
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .c-modal-head {
@@ -505,6 +584,9 @@
 
 .c-modal-body {
     padding: 20px;
+    overflow-y: auto;
+    max-height: calc(90vh - 120px);
+    padding-right: 6px;
 }
 
 .c-modal-row {
@@ -517,6 +599,321 @@
         margin: 8px 0 0;
         line-height: 1.6;
     }
+
+.c-workflow-modal {
+    width: min(980px, 92vw);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 22px;
+}
+
+.c-modal-subtext {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.c-workflow-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+    max-height: calc(92vh - 140px);
+    padding-right: 6px;
+}
+
+.c-workflow-top {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.c-info-card,
+.c-update-card,
+.c-history-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+    position: relative;
+    z-index: 1;
+}
+
+    .c-info-card h4,
+    .c-update-card h4,
+    .c-history-card h4 {
+        margin: 0 0 14px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+.c-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.c-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f9fafb;
+    border: 1px solid #edf0f3;
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.c-info-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.c-info-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.c-info-block {
+    background: #f9fafb;
+    border: 1px solid #edf0f3;
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.c-info-text {
+    margin: 8px 0 0;
+    color: #1f2937;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.c-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.c-note-textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+}
+
+.c-field-help {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.45;
+    position: relative;
+    z-index: 1;
+}
+
+.c-confirm-box {
+    margin-top: 8px;
+    padding: 14px 16px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+}
+
+.c-confirm-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #7c2d12;
+}
+
+.c-confirm-help {
+    margin: 8px 0 0 28px;
+    font-size: 13px;
+    color: #9a3412;
+    line-height: 1.4;
+}
+
+.c-history-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.c-history-sub {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.c-history-list {
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.c-history-entry {
+    position: relative;
+    padding: 12px 14px 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #7c2d12;
+    border-radius: 14px;
+    background: #fcfcfd;
+    line-height: 1.5;
+    color: #1f2937;
+}
+
+    .c-history-entry strong {
+        color: #111827;
+    }
+
+.c-history-data {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.c-workflow-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.c-secondary-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .c-secondary-btn:hover {
+        background: #f9fafb;
+    }
+
+.c-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 108px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.c-badge-pending {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: #fed7aa;
+}
+
+.c-badge-inprogress {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.c-badge-overdue {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.c-badge-escalated {
+    background: #faf5ff;
+    color: #7e22ce;
+    border-color: #e9d5ff;
+}
+
+.c-badge-resolved {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
+.c-status-select,
+#wfStatus {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #fff;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
+    pointer-events: auto;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .c-status-select:focus,
+    #wfStatus:focus {
+        border-color: #9d0b0f;
+        box-shadow: 0 0 0 3px rgba(157, 11, 15, 0.12);
+    }
+
+.c-status-hint {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 500;
+    border: 1px solid transparent;
+    position: relative;
+    z-index: 1;
+}
+
+.c-status-hint-progress {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.c-status-hint-resolved {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: #fdba74;
+}
+
+.c-modal-body::-webkit-scrollbar,
+.c-workflow-body::-webkit-scrollbar,
+.c-history-list::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.c-modal-body::-webkit-scrollbar-thumb,
+.c-workflow-body::-webkit-scrollbar-thumb,
+.c-history-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
 
 @media (max-width: 1400px) {
     .c-kpi-grid {
@@ -542,6 +939,18 @@
     .c-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .c-workflow-top {
+        grid-template-columns: 1fr;
+    }
+
+    .c-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .c-workflow-modal {
+        width: 95vw;
+    }
 }
 
 @media (max-width: 640px) {
@@ -563,69 +972,22 @@
     }
 }
 
-.c-export-btn {
-    border: none;
-    background: #7c0a02;
-    color: #fff;
-    border-radius: 12px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
+.c-action-cell {
+    position: relative;
+    z-index: 20;
+    overflow: visible;
 }
 
-    .c-export-btn:hover {
-        background: #5a0701;
+    .c-action-cell .c-table-actions {
+        position: relative;
+        z-index: 30;
     }
 
-.c-filter-btn {
-    border: none;
-    background: #e5e7eb;
-    border-radius: 12px;
-    padding: 10px 25px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-    .c-filter-btn:hover {
-        background: maroon;
+    .c-action-cell .c-view-btn,
+    .c-action-cell .c-mini-btn,
+    .c-action-cell .c-start-btn {
+        position: relative;
+        z-index: 31;
+        pointer-events: auto;
+        cursor: pointer;
     }
-.c-main-table td {
-    word-break: break-word;
-}
-
-    .c-main-table td:nth-child(1) {
-        min-width: 220px;
-        font-weight: 700;
-    }
-
-    .c-main-table td:nth-child(2) {
-        min-width: 110px;
-    }
-
-    .c-main-table td:nth-child(3) {
-        min-width: 180px;
-        max-width: 240px;
-    }
-
-    .c-main-table td:nth-child(4) {
-        min-width: 200px;
-        max-width: 280px;
-    }
-
-    .c-main-table td:nth-child(5) {
-        min-width: 160px;
-    }
-
-    .c-main-table td:nth-child(6) {
-        min-width: 130px;
-    }
-
-.c-track-id {
-    font-weight: 700;
-    color: #9d0b0f;
-    letter-spacing: 0.4px;
-}

@@ -13,17 +13,22 @@ namespace LipaCityARTA.Models
         public DbSet<AdminUser> AdminUsers { get; set; }
         public DbSet<SurveyResponse> SurveyResponses { get; set; }
         public DbSet<Complaint> Complaints { get; set; }
+        public DbSet<ComplaintActionHistory> ComplaintActionHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Make TrackingId unique
             modelBuilder.Entity<Complaint>()
                 .HasIndex(c => c.TrackingId)
                 .IsUnique();
 
-            // Seed a default admin user
+            modelBuilder.Entity<ComplaintActionHistory>()
+                .HasOne(h => h.Complaint)
+                .WithMany(c => c.ActionHistories)
+                .HasForeignKey(h => h.ComplaintId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<AdminUser>().HasData(
                 new AdminUser
                 {
