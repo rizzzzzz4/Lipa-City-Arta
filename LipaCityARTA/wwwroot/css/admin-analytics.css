@@ -80,7 +80,7 @@
 
 .ar-filters {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr 1fr auto;
     gap: 14px;
     align-items: end;
 }
@@ -139,6 +139,56 @@
 
     .ar-btn:hover {
         background: #991b1b;
+        transform: translateY(-1px);
+    }
+
+/* ACTION BUTTONS */
+
+.ar-actions {
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+}
+
+.ar-btn-report,
+.ar-btn-filter {
+    min-height: 44px;
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.ar-btn-filter {
+    background: #7c0a02;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(124, 10, 2, 0.18);
+}
+
+    .ar-btn-filter:hover {
+        background: #991b1b;
+        transform: translateY(-1px);
+    }
+
+.ar-btn-report {
+    background: #ffffff;
+    color: #7c0a02;
+    border: 2px solid #7c0a02;
+}
+
+    .ar-btn-report:hover {
+        background: #7c0a02;
+        color: #ffffff;
         transform: translateY(-1px);
     }
 
@@ -318,7 +368,6 @@
 /* RESPONSIVE */
 
 @media (max-width: 1200px) {
-
     .ar-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -326,10 +375,14 @@
     .ar-filters {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .ar-actions {
+        grid-column: span 2;
+        justify-content: flex-end;
+    }
 }
 
 @media (max-width: 980px) {
-
     .ar-grid-main {
         grid-template-columns: 1fr;
     }
@@ -350,7 +403,6 @@
 }
 
 @media (max-width: 640px) {
-
     .ar-page {
         padding: 12px;
     }
@@ -360,24 +412,18 @@
         grid-template-columns: 1fr;
     }
 
+    .ar-actions {
+        grid-column: span 1;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ar-btn-report,
+    .ar-btn-filter {
+        width: 100%;
+    }
+
     .ar-chart-wrap {
         min-height: 280px;
     }
 }
-.ar-btn-report {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: #7c0a02;
-    color: white;
-    font-weight: 700;
-    text-decoration: none;
-    margin-left: 10px;
-    transition: 0.2s;
-}
-
-    .ar-btn-report:hover {
-        background: #991b1b;
-    }

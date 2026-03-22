@@ -381,7 +381,6 @@ C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\scopedcss\bundle\LipaCityARTA.styles.css
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\scopedcss\projectbundle\LipaCityARTA.bundle.scp.css
-C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-wq30uwbas1-wq30uwbas1.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\3za0v2nwwb-{0}-ysk54svajx-ysk54svajx.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\jxj9uqo88z-{0}-mh3hlz8vsj-mh3hlz8vsj.gz
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\2d6w2jgqmw-{0}-ea2i7p9p8o-ea2i7p9p8o.gz
@@ -470,3 +469,4 @@ C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\bin\Debug\net10.
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\bin\Debug\net10.0\LipaCityARTA.pdb
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\LipaCityARTA.genruntimeconfig.cache
 C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\ref\LipaCityARTA.dll
+C:\Users\Administrator\source\repos\Lipa-City-Arta\LipaCityARTA\obj\Debug\net10.0\compressed\ubrfs1zoqf-{0}-c0n3pg39hv-c0n3pg39hv.gz
