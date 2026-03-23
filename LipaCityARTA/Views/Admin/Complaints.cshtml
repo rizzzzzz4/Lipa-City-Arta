@@ -805,11 +805,23 @@
                 wfIsClosed.checked = false;
                 syncCaseClosedHidden();
 
-                const currentStatus = button.dataset.status || "Pending";
+                const currentStatus = (button.dataset.status || "Pending").trim();
+
                 wfCurrentStatusBadge.textContent = currentStatus;
                 wfCurrentStatusBadge.className = getStatusBadgeClass(currentStatus);
 
-                wfStatus.value = "In Progress";
+                wfStatus.dataset.currentStatus = currentStatus;
+
+                if (currentStatus === "Pending") {
+                    wfStatus.value = "In Progress";
+                } else if (currentStatus === "Resolved") {
+                    wfStatus.value = "Resolved";
+                    wfIsClosed.checked = true;
+                    syncCaseClosedHidden();
+                } else {
+                    wfStatus.value = currentStatus;
+                }
+
                 updateWorkflowStatusHint();
 
                 const historyContainer = ticket ? ticket.querySelector(".c-history-data") : null;
@@ -893,8 +905,10 @@
                 workflowForm.addEventListener("submit", function (e) {
                     syncCaseClosedHidden();
 
-                    const selectedStatus = wfStatus.value;
+                    const selectedStatus = (wfStatus.value || "").trim();
+                    const currentStatus = (wfStatus.dataset.currentStatus || "").trim();
                     const note = (wfActionNote.value || "").trim();
+                    const allowedBeforeResolved = ["In Progress", "Overdue", "Escalated"];
 
                     if (selectedStatus === "In Progress" && !note) {
                         e.preventDefault();
@@ -903,6 +917,12 @@
                     }
 
                     if (selectedStatus === "Resolved") {
+                        if (!allowedBeforeResolved.includes(currentStatus) && currentStatus !== "Resolved") {
+                            e.preventDefault();
+                            alert("Complaint must first be active before it can be resolved.");
+                            return;
+                        }
+
                         if (!note) {
                             e.preventDefault();
                             alert("Please enter a final action note before resolving the complaint.");
