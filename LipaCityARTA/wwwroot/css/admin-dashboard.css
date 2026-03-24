@@ -3,7 +3,6 @@
     padding: 22px;
 }
 
-/* HEADER */
 .dashboard-header {
     display: flex;
     align-items: flex-start;
@@ -65,7 +64,6 @@
     color: #111827;
 }
 
-/* KPI GRID */
 .dashboard-main {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -128,7 +126,6 @@
     line-height: 1.45;
 }
 
-/* INSIGHTS */
 .insights-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -175,7 +172,6 @@
     font-weight: 800;
 }
 
-/* GENERAL CARDS */
 .card {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -252,7 +248,7 @@
     height: 300px !important;
 }
 
-/* RECENT LIST */
+
 .recent-list {
     list-style: none;
     padding: 0;

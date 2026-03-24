@@ -513,8 +513,39 @@
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 10);
 
-                const officeLabels = sortedOffices.map(x => x[0]);
-                const officeCounts = sortedOffices.map(x => x[1]);
+                const officeDisplayMap = {
+                "City Mayor's Office": "Mayor",
+                "City Vice Mayor's Office": "Vice Mayor",
+                "City Treasurer's Office": "Treasurer",
+                "City Administrator": "Administrator",
+                "City Legal Office": "Legal",
+                "City Assessor's Office": "Assessor",
+                "City Accounting Office": "Accounting",
+                "City Agriculture Office": "Agriculture",
+                "City Budget Office": "Budget",
+                "City Civil Registrar's Office": "Registrar",
+                "City Community Affairs Office": "Community Affairs",
+                "City Cooperatives Office": "Cooperatives",
+                "City Disaster Risk Reduction and Management Office": "DRRMO",
+                "City Engineering Office": "Engineering",
+                "City Environment and Natural Resources Office": "ENRO",
+                "City General Services Office": "Gen. Services",
+                "City Health Office": "Health",
+                "City Hospital Systems Office": "Hospital",
+                "City Permits and Licensing Office": "Permits",
+                "City Personnel Office": "Personnel",
+                "City Planning and Development Office": "Planning",
+                "City Public Order and Safety Office": "Public Safety",
+                "City Social Welfare and Development Office": "Social Welfare",
+                "City Traffic Management and Transportation Office": "Traffic",
+                "City Veterinary Office": "Veterinary",
+                "City Sangguniang Panlungsod Office": "SP Office",
+                "Kolehiyo ng Lungsod ng Lipa": "KLL",
+                "Ospital ng Lipa": "Ospital"
+                };
+
+                // ✅ shorten ONLY labels (no logic changed)
+                const officeLabels = sortedOffices.map(x => officeDisplayMap[x[0]] || x[0]);                const officeCounts = sortedOffices.map(x => x[1]);
 
                 if (sqdChart) sqdChart.destroy();
                 if (sexChart) sexChart.destroy();

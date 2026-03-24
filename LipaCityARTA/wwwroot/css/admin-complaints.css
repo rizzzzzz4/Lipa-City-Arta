@@ -328,7 +328,6 @@
     background: linear-gradient(90deg, #166534 0%, #15803d 100%);
 }
 
-/* FIXED TABLE AREA */
 .c-table-wrap {
     overflow: hidden;
     background: #fff;
@@ -375,7 +374,6 @@
         background: #fafafa;
     }
 
-    /* TIGHTER COLUMN WIDTHS SO EVERYTHING FITS */
     .c-main-table th:nth-child(1),
     .c-main-table td:nth-child(1) {
         width: 14%;
