@@ -139,54 +139,63 @@ body {
     color: #374151;
 }
 
-
 .button-group {
     display: flex;
-    gap: 16px;
+    gap: 18px;
     justify-content: center;
     flex-wrap: wrap;
-    margin-top: 20px;
+    margin-top: 25px;
 }
 
-.start-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 48px;
-    padding: 14px 24px;
-    border-radius: 12px;
-    background: #821414;
-
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-    .start-btn:hover {
-        background: #5f0f0f;
-        transform: translateY(-2px);
-    }
-
+.start-btn,
 .track-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
-    padding: 14px 24px;
+    min-height: 50px;
+    min-width: 170px;
+    padding: 14px 26px;
     border-radius: 12px;
-    background: #821414;
     color: #fff;
     text-decoration: none;
     font-weight: 600;
     font-size: 1rem;
-    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.start-btn {
+    background: #821414;
+}
+
+    .start-btn:hover {
+        background: #a31515;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    }
+
+    .start-btn:nth-child(2) {
+        background: #5f0f0f;
+    }
+
+        .start-btn:nth-child(2):hover {
+            background: #7a1212;
+        }
+
+.track-btn {
+    background: #a24857;
 }
 
     .track-btn:hover {
-        background: #5f0f0f;
-        transform: translateY(-2px);
+        background: #8e3a48;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    }
+
+    .start-btn:active,
+    .track-btn:active {
+        transform: scale(0.96);
     }
 
 .footer {
