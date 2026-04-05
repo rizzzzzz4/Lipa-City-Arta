@@ -1,223 +1,143 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    const rows = Array.from(document.querySelectorAll("#surveyTable tbody .data-row"));
 
-    const filteredCountBadge = document.getElementById("filteredCountBadge");
-    const filteredCountText = document.getElementById("filteredCountText");
-
-    const fOffice = document.getElementById("fOffice");
-    const fSex = document.getElementById("fSex");
-    const fClientType = document.getElementById("fClientType");
-    const fAgeMin = document.getElementById("fAgeMin");
-    const fAgeMax = document.getElementById("fAgeMax");
-    const fFrom = document.getElementById("fFrom");
-    const fTo = document.getElementById("fTo");
-    const tableSearch = document.getElementById("tableSearch");
-
-    const btnApply = document.getElementById("btnApply");
-    const btnReset = document.getElementById("btnReset");
-    const generateSurveyReportBtn = document.getElementById("generateSurveyReportBtn");
+    const surveyData = JSON.parse(document.getElementById("surveyData").textContent);
 
     const kpiTotal = document.getElementById("kpiTotal");
     const kpiAvgAge = document.getElementById("kpiAvgAge");
     const kpiOverallSQD = document.getElementById("kpiOverallSQD");
     const kpiTopOffice = document.getElementById("kpiTopOffice");
-    const topClientTypeText = document.getElementById("topClientTypeText");
-    const tableVisibleCount = document.getElementById("tableVisibleCount");
-    const topOfficeSummary = document.getElementById("topOfficeSummary");
 
     const sqdLabels = ["SQD0", "SQD1", "SQD2", "SQD3", "SQD4", "SQD5", "SQD6", "SQD7", "SQD8"];
 
     let sqdChart, sexChart, clientChart, officeChart;
 
     function normalize(v) {
-        return (v || "").toString().trim().toLowerCase();
+        return (v || "").toLowerCase().trim();
     }
 
-    function getVisibleRows() {
-        return rows.filter(r => r.style.display !== "none");
+    function createGradient(ctx, c1, c2) {
+        const g = ctx.createLinearGradient(0, 0, 0, 300);
+        g.addColorStop(0, c1);
+        g.addColorStop(1, c2);
+        return g;
     }
 
-    function parseRowSQDs(row) {
-        const raw = row.dataset.sqds || "";
-        return raw
-            .split(",")
-            .map(x => parseFloat(x))
-            .filter(x => !isNaN(x));
+    // ✅ FIXED (MISSING FUNCTION)
+    function getBase64Image(imgUrl, callback) {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+
+        img.onload = function () {
+            const canvas = document.createElement("canvas");
+            canvas.width = this.width;
+            canvas.height = this.height;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(this, 0, 0);
+
+            const dataURL = canvas.toDataURL("image/png");
+            callback(dataURL);
+        };
+
+        img.onerror = function () {
+            alert("Logo failed to load. Check /images/logo.png");
+        };
+
+        img.src = imgUrl;
     }
 
-    function getDashboardSummary(visibleRows) {
-        const total = visibleRows.length;
+    function getFilteredData() {
+        const from = document.querySelector("input[name='dateFrom']").value;
+        const to = document.querySelector("input[name='dateTo']").value;
+        const office = document.querySelector("select[name='office']").value;
 
+        return surveyData.filter(s => {
+            const d = new Date(s.date);
+            if (isNaN(d)) return false;
+
+            if (from && d < new Date(from)) return false;
+
+            if (to) {
+                const end = new Date(to);
+                end.setHours(23, 59, 59, 999);
+                if (d > end) return false;
+            }
+
+            if (office && normalize(s.office) !== normalize(office)) return false;
+
+            return true;
+        });
+    }
+
+    function compute(data) {
+        const total = data.length;
         let ageTotal = 0;
-        let sqdGrandTotal = 0;
-        let sqdValueCount = 0;
+        let sqdTotals = Array(9).fill(0);
 
-        const officeMap = {};
-        const clientMap = {};
+        const officeMap = {}, clientMap = {}, sexMap = { male: 0, female: 0, other: 0 };
 
-        visibleRows.forEach(r => {
-            const cells = r.querySelectorAll("td");
+        data.forEach(s => {
+            ageTotal += Number(s.age) || 0;
 
-            const office = cells[1]?.innerText.trim() || "Unknown";
-            const age = parseInt(cells[2]?.innerText.trim() || "0", 10);
-            const clientType = cells[4]?.innerText.trim() || "Unknown";
-            const sqds = parseRowSQDs(r);
-
-            ageTotal += age;
-
-            sqds.forEach(v => {
-                sqdGrandTotal += v;
-                sqdValueCount++;
-            });
-
-            officeMap[office] = (officeMap[office] || 0) + 1;
-            clientMap[clientType] = (clientMap[clientType] || 0) + 1;
-        });
-
-        const avgAge = total > 0 ? ageTotal / total : 0;
-        const overallSQD = sqdValueCount > 0 ? sqdGrandTotal / sqdValueCount : 0;
-
-        let topOffice = "N/A";
-        let topOfficeCount = 0;
-        Object.entries(officeMap).forEach(([office, count]) => {
-            if (count > topOfficeCount) {
-                topOfficeCount = count;
-                topOffice = office;
+            for (let i = 0; i < 9; i++) {
+                sqdTotals[i] += Number(s["sqd" + i]) || 0;
             }
-        });
 
-        let topClientType = "N/A";
-        let topClientCount = 0;
-        Object.entries(clientMap).forEach(([clientType, count]) => {
-            if (count > topClientCount) {
-                topClientCount = count;
-                topClientType = clientType;
-            }
+            officeMap[s.office] = (officeMap[s.office] || 0) + 1;
+            clientMap[s.client] = (clientMap[s.client] || 0) + 1;
+
+            const sex = normalize(s.sex);
+            if (sex === "male") sexMap.male++;
+            else if (sex === "female") sexMap.female++;
+            else sexMap.other++;
         });
 
         return {
             total,
-            avgAge,
-            overallSQD,
-            topOffice,
-            topClientType
+            avgAge: total ? ageTotal / total : 0,
+            overallSQD: total ? sqdTotals.reduce((a, b) => a + b, 0) / (total * 9) : 0,
+            sqdAvg: sqdTotals.map(x => total ? x / total : 0),
+            officeMap,
+            clientMap,
+            sexMap
         };
     }
 
-    function updateKPIs(visibleRows) {
-        const summary = getDashboardSummary(visibleRows);
+    function buildCharts() {
 
-        if (kpiTotal) kpiTotal.textContent = summary.total;
-        if (kpiAvgAge) kpiAvgAge.textContent = summary.avgAge.toFixed(1);
-        if (kpiOverallSQD) kpiOverallSQD.textContent = summary.overallSQD.toFixed(2);
-        if (kpiTopOffice) kpiTopOffice.textContent = summary.topOffice;
-        if (topClientTypeText) topClientTypeText.textContent = summary.topClientType;
-        if (topOfficeSummary) topOfficeSummary.textContent = summary.topOffice;
-    }
+        let filtered = getFilteredData();
+        if (!filtered.length) filtered = surveyData;
 
-    function buildCharts(visibleRows) {
-        const sqdTotals = Array(9).fill(0);
-        let sqdCount = 0;
+        const data = compute(filtered);
 
-        let male = 0, female = 0, other = 0;
-        const clientMap = {};
-        const officeMap = {};
+        kpiTotal.textContent = data.total;
+        kpiAvgAge.textContent = data.avgAge.toFixed(1);
+        kpiOverallSQD.textContent = data.overallSQD.toFixed(2);
 
-        visibleRows.forEach(r => {
-            const cells = r.querySelectorAll("td");
-
-            const office = cells[1]?.innerText.trim() || "Unknown";
-            const sex = normalize(cells[3]?.innerText);
-            const clientType = cells[4]?.innerText.trim() || "Unknown";
-            const sqds = parseRowSQDs(r);
-
-            if (sqds.length === 9) {
-                for (let i = 0; i < 9; i++) {
-                    sqdTotals[i] += sqds[i];
-                }
-                sqdCount++;
-            }
-
-            if (sex === "male") male++;
-            else if (sex === "female") female++;
-            else other++;
-
-            clientMap[clientType] = (clientMap[clientType] || 0) + 1;
-            officeMap[office] = (officeMap[office] || 0) + 1;
+        let top = "-", max = 0;
+        Object.entries(data.officeMap).forEach(([k, v]) => {
+            if (v > max) { max = v; top = k; }
         });
-
-        const sqdAvg = sqdTotals.map(x => sqdCount > 0 ? x / sqdCount : 0);
-
-        const clientLabels = Object.keys(clientMap);
-        const clientCounts = Object.values(clientMap);
-
-        const sortedOffices = Object.entries(officeMap)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10);
-
-        const officeDisplayMap = {
-            "City Mayor's Office": "Mayor",
-            "City Vice Mayor's Office": "Vice Mayor",
-            "City Treasurer's Office": "Treasurer",
-            "City Administrator": "Administrator",
-            "City Legal Office": "Legal",
-            "City Assessor's Office": "Assessor",
-            "City Accounting Office": "Accounting",
-            "City Agriculture Office": "Agriculture",
-            "City Budget Office": "Budget",
-            "City Civil Registrar's Office": "Registrar",
-            "City Community Affairs Office": "Community Affairs",
-            "City Cooperatives Office": "Cooperatives",
-            "City Disaster Risk Reduction and Management Office": "DRRMO",
-            "City Engineering Office": "Engineering",
-            "City Environment and Natural Resources Office": "ENRO",
-            "City General Services Office": "Gen. Services",
-            "City Health Office": "Health",
-            "City Hospital Systems Office": "Hospital",
-            "City Permits and Licensing Office": "Permits",
-            "City Personnel Office": "Personnel",
-            "City Planning and Development Office": "Planning",
-            "City Public Order and Safety Office": "Public Safety",
-            "City Social Welfare and Development Office": "Social Welfare",
-            "City Traffic Management and Transportation Office": "Traffic",
-            "City Veterinary Office": "Veterinary",
-            "City Sangguniang Panlungsod Office": "SP Office",
-            "Kolehiyo ng Lungsod ng Lipa": "KLL",
-            "Ospital ng Lipa": "Ospital"
-        };
-
-        // ✅ shorten ONLY labels (no logic changed)
-        const officeLabels = sortedOffices.map(x => officeDisplayMap[x[0]] || x[0]); const officeCounts = sortedOffices.map(x => x[1]);
+        kpiTopOffice.textContent = top;
 
         if (sqdChart) sqdChart.destroy();
         if (sexChart) sexChart.destroy();
         if (clientChart) clientChart.destroy();
         if (officeChart) officeChart.destroy();
 
-        sqdChart = new Chart(document.getElementById("sqdChart"), {
+        const sqdCtx = document.getElementById("sqdChart").getContext("2d");
+
+        sqdChart = new Chart(sqdCtx, {
             type: "bar",
             data: {
                 labels: sqdLabels,
                 datasets: [{
-                    label: "Average Rating",
-                    data: sqdAvg,
-                    backgroundColor: "rgba(124, 10, 2, 0.78)",
-                    borderRadius: 10
+                    label: "SQD Average",
+                    data: data.sqdAvg,
+                    backgroundColor: createGradient(sqdCtx, "#7C0A02", "#DC2626"),
+                    borderRadius: 8,
+                    barThickness: 40
                 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: {
-                        beginAtZero: true,
-                        suggestedMax: 5
-                    }
-                }
             }
         });
 
@@ -225,367 +145,202 @@
             type: "pie",
             data: {
                 labels: ["Male", "Female", "Other"],
-                datasets: [{
-                    data: [male, female, other],
-                    backgroundColor: ["#7C0A02", "#DC2626", "#F59E0B"]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
+                datasets: [{ data: Object.values(data.sexMap) }]
             }
         });
 
         clientChart = new Chart(document.getElementById("clientChart"), {
             type: "doughnut",
             data: {
-                labels: clientLabels,
-                datasets: [{
-                    data: clientCounts,
-                    backgroundColor: [
-                        "#7C0A02", "#B91C1C", "#EF4444", "#F97316",
-                        "#F59E0B", "#22C55E", "#06B6D4", "#3B82F6",
-                        "#6366F1", "#8B5CF6", "#EC4899", "#14B8A6"
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
+                labels: Object.keys(data.clientMap),
+                datasets: [{ data: Object.values(data.clientMap) }]
             }
         });
 
-        officeChart = new Chart(document.getElementById("officeChart"), {
+        const officeCtx = document.getElementById("officeChart").getContext("2d");
+
+        officeChart = new Chart(officeCtx, {
             type: "bar",
             data: {
-                labels: officeLabels,
+                labels: Object.keys(data.officeMap),
                 datasets: [{
-                    label: "Responses",
-                    data: officeCounts,
-                    backgroundColor: "rgba(124, 10, 2, 0.78)",
-                    borderRadius: 10
+                    label: "Office Responses",
+                    data: Object.values(data.officeMap),
+                    backgroundColor: createGradient(officeCtx, "#7C0A02", "#F97316"),
+                    borderRadius: 6
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true }
-                }
-            }
+            options: { indexAxis: 'y' }
         });
     }
 
-    function refreshDashboard() {
-        const visibleRows = getVisibleRows();
-        const text = `Showing: ${visibleRows.length} / ${rows.length}`;
+    document.getElementById("applyBtn").addEventListener("click", buildCharts);
 
-        if (filteredCountBadge) filteredCountBadge.textContent = text;
-        if (filteredCountText) filteredCountText.textContent = text;
-        if (tableVisibleCount) tableVisibleCount.textContent = visibleRows.length;
+    buildCharts();
 
-        updateKPIs(visibleRows);
-        buildCharts(visibleRows);
-    }
+    const generateBtn = document.getElementById("generateSurveyReportBtn");
 
-    function applyFilters() {
-        const officeVal = normalize(fOffice?.value);
-        const sexVal = normalize(fSex?.value);
-        const clientVal = normalize(fClientType?.value);
-        const searchVal = normalize(tableSearch?.value);
+    if (generateBtn) {
+        generateBtn.addEventListener("click", function () {
 
-        const ageMin = fAgeMin?.value ? parseInt(fAgeMin.value, 10) : null;
-        const ageMax = fAgeMax?.value ? parseInt(fAgeMax.value, 10) : null;
-
-        const fromDate = fFrom?.value ? new Date(fFrom.value + "T00:00:00") : null;
-        const toDate = fTo?.value ? new Date(fTo.value + "T23:59:59") : null;
-
-        rows.forEach(r => {
-            const rOffice = normalize(r.dataset.office);
-            const rSex = normalize(r.dataset.sex);
-            const rClient = normalize(r.dataset.client);
-            const rAge = parseInt(r.dataset.age || "0", 10);
-
-            const rDateStr = r.dataset.date || "";
-            const rDate = rDateStr ? new Date(rDateStr + "T12:00:00") : null;
-            const rowText = normalize(r.innerText);
-
-            let ok = true;
-
-            if (officeVal && rOffice !== officeVal) ok = false;
-
-            if (sexVal) {
-                if (sexVal === "other") {
-                    if (rSex === "male" || rSex === "female") ok = false;
-                } else if (rSex !== sexVal) {
-                    ok = false;
-                }
+            if (!window.jspdf) {
+                alert("jsPDF not loaded!");
+                return;
             }
 
-            if (clientVal && rClient !== clientVal) ok = false;
-            if (ageMin !== null && rAge < ageMin) ok = false;
-            if (ageMax !== null && rAge > ageMax) ok = false;
-            if (fromDate && rDate && rDate < fromDate) ok = false;
-            if (toDate && rDate && rDate > toDate) ok = false;
-            if (searchVal && !rowText.includes(searchVal)) ok = false;
+            const { jsPDF } = window.jspdf;
 
-            r.style.display = ok ? "" : "none";
-        });
+            let data = getFilteredData();
+            if (!data.length) data = surveyData;
 
-        refreshDashboard();
-    }
+            const computed = compute(data);
 
-    function resetFilters() {
-        if (fOffice) fOffice.value = "";
-        if (fSex) fSex.value = "";
-        if (fClientType) fClientType.value = "";
-        if (fAgeMin) fAgeMin.value = "";
-        if (fAgeMax) fAgeMax.value = "";
-        if (fFrom) fFrom.value = "";
-        if (fTo) fTo.value = "";
-        if (tableSearch) tableSearch.value = "";
+            getBase64Image("/images/logo.png", function (logoBase64) {
 
-        rows.forEach(r => r.style.display = "");
-        refreshDashboard();
-    }
+                const doc = new jsPDF();
+                let y = 15;
 
-    async function loadImageAsBase64(url) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
+                // =========================
+                // HEADER + LOGO
+                // =========================
+                doc.addImage(logoBase64, "PNG", 14, 10, 25, 25);
 
-            return await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        } catch {
-            return null;
-        }
-    }
+                doc.setFontSize(18);
+                doc.text("Analytics Performance Report", 45, 18);
 
-    function formatPrettyDate(dateStr) {
-        if (!dateStr) return "";
-        const d = new Date(dateStr + "T00:00:00");
-        return d.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
-    }
+                doc.setFontSize(11);
+                doc.text("Lipa City Anti-Red Tape Authority", 45, 24);
 
-    function formatDateRange(from, to) {
-        if (from && to) return `${formatPrettyDate(from)} - ${formatPrettyDate(to)}`;
-        if (from) return `From ${formatPrettyDate(from)}`;
-        if (to) return `Until ${formatPrettyDate(to)}`;
-        return "All Dates";
-    }
+                y = 40;
 
-    async function generateSurveyPdf() {
-        const visibleRows = getVisibleRows();
+                doc.setFontSize(10);
+                doc.text("Generated: " + new Date().toLocaleString(), 14, y);
 
-        if (visibleRows.length === 0) {
-            alert("No visible survey records to export.");
-            return;
-        }
+                y += 10;
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("p", "mm", "a4");
+                // =========================
+                // KEY METRICS
+                // =========================
+                doc.setFontSize(12);
+                doc.setFont(undefined, "bold");
+                doc.text("Key Metrics", 14, y);
 
-        const logoBase64 = await loadImageAsBase64("/images/logo.png");
-        const summary = getDashboardSummary(visibleRows);
+                y += 6;
 
-        const officeValue = fOffice?.value || "All Offices";
-        const sexValue = fSex?.value || "All";
-        const clientTypeValue = fClientType?.value || "All";
-        const dateRangeText = formatDateRange(fFrom?.value || "", fTo?.value || "");
+                doc.setFont(undefined, "normal");
+                doc.setFontSize(11);
 
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
+                doc.text(`Total Responses: ${computed.total}`, 14, y); y += 6;
+                doc.text(`Average Age: ${computed.avgAge.toFixed(1)}`, 14, y); y += 6;
+                doc.text(`Overall SQD: ${computed.overallSQD.toFixed(2)}`, 14, y);
 
-        function addHeader() {
-            if (logoBase64) {
-                doc.addImage(logoBase64, "PNG", 14, 10, 16, 16);
-            }
+                y += 10;
 
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("Survey Results Report", 35, 16);
+                // =========================
+                // KEY FINDINGS
+                // =========================
+                doc.setFont(undefined, "bold");
+                doc.text("Key Findings", 14, y);
 
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.text("Lipa City Anti-Red Tape Authority", 35, 22);
+                y += 6;
 
-            doc.setDrawColor(150, 150, 150);
-            doc.setLineWidth(0.3);
-            doc.line(14, 30, pageWidth - 14, 30);
-        }
+                doc.setFont(undefined, "normal");
 
-        function addFooter() {
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.2);
-            doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+                let findings = [];
 
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(8);
-            doc.text(`Generated on ${new Date().toLocaleString()}`, 14, pageHeight - 7);
-            doc.text("Page 1", pageWidth - 14, pageHeight - 7, { align: "right" });
-        }
+                findings.push(`A total of ${computed.total} survey responses were analyzed.`);
+                findings.push(`The overall satisfaction score is ${computed.overallSQD.toFixed(2)}.`);
 
-        function addSectionTitle(text, y) {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text(text, 14, y);
-            return y + 7;
-        }
+                let topOffice = "-", max = 0;
+                Object.entries(computed.officeMap).forEach(([k, v]) => {
+                    if (v > max) { max = v; topOffice = k; }
+                });
 
-        function addParagraph(text, y, maxWidth = 182) {
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            const lines = doc.splitTextToSize(text, maxWidth);
-            doc.text(lines, 14, y);
-            return y + (lines.length * 5);
-        }
+                findings.push(`The office with the highest responses is ${topOffice}.`);
 
-        function addInfoLine(label, value, y) {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
-            doc.text(label, 14, y);
+                findings.forEach(f => {
+                    doc.text("• " + f, 14, y);
+                    y += 6;
+                });
 
-            doc.setFont("helvetica", "normal");
-            doc.text(String(value), 50, y);
-            return y + 6;
-        }
+                y += 5;
 
-        function getSexBreakdown(rows) {
-            let male = 0, female = 0, other = 0;
+                // =========================
+                // PAGE 1 → SUMMARY TABLE
+                // =========================
+                const officeSummary = {};
 
-            rows.forEach(r => {
-                const sex = normalize(r.dataset.sex);
-                if (sex === "male") male++;
-                else if (sex === "female") female++;
-                else other++;
-            });
-
-            const total = rows.length || 1;
-
-            return {
-                male,
-                female,
-                other,
-                malePct: ((male / total) * 100).toFixed(1),
-                femalePct: ((female / total) * 100).toFixed(1),
-                otherPct: ((other / total) * 100).toFixed(1)
-            };
-        }
-
-        function getSQDAverages(rows) {
-            const totals = Array(9).fill(0);
-            let count = 0;
-
-            rows.forEach(r => {
-                const sqds = parseRowSQDs(r);
-
-                if (sqds.length === 9) {
-                    for (let i = 0; i < 9; i++) {
-                        totals[i] += sqds[i];
+                data.forEach(s => {
+                    if (!officeSummary[s.office]) {
+                        officeSummary[s.office] = {
+                            count: 0,
+                            totalSQD: 0
+                        };
                     }
-                    count++;
-                }
+
+                    const avg =
+                        (s.sqd0 + s.sqd1 + s.sqd2 + s.sqd3 +
+                            s.sqd4 + s.sqd5 + s.sqd6 + s.sqd7 + s.sqd8) / 9;
+
+                    officeSummary[s.office].count++;
+                    officeSummary[s.office].totalSQD += avg;
+                });
+
+                const summaryData = Object.entries(officeSummary).map(([office, val]) => {
+                    return [
+                        office,
+                        val.count,
+                        (val.totalSQD / val.count).toFixed(2)
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: y,
+                    head: [["Office", "Responses", "Avg SQD"]],
+                    body: summaryData,
+                    styles: { fontSize: 10 },
+                    headStyles: { fillColor: [124, 10, 2] }
+                });
+
+                // =========================
+                // PAGE 2 → DETAILED TABLE
+                // =========================
+                doc.addPage();
+
+                doc.setFontSize(14);
+                doc.text("Detailed Survey Records", 14, 15);
+
+                const detailedData = data
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map(s => {
+
+                        const avg =
+                            (s.sqd0 + s.sqd1 + s.sqd2 + s.sqd3 +
+                                s.sqd4 + s.sqd5 + s.sqd6 + s.sqd7 + s.sqd8) / 9;
+
+                        return [
+                            s.office,
+                            s.age,
+                            s.sex,
+                            avg.toFixed(2),
+                            s.date
+                        ];
+                    });
+
+                doc.autoTable({
+                    startY: 25,
+                    head: [["Office", "Age", "Sex", "SQD Avg", "Date"]],
+                    body: detailedData,
+                    styles: { fontSize: 9 },
+                    headStyles: { fillColor: [124, 10, 2] }
+                });
+
+                // =========================
+                // SAVE PDF
+                // =========================
+                doc.save("ARTA_Survey_Report.pdf");
+
             });
-
-            return totals.map(v => count > 0 ? v / count : 0);
-        }
-
-        function getTopItems(rows, cellIndex) {
-            const map = {};
-
-            rows.forEach(r => {
-                const value = r.querySelectorAll("td")[cellIndex]?.innerText.trim() || "Unknown";
-                map[value] = (map[value] || 0) + 1;
-            });
-
-            return Object.entries(map).sort((a, b) => b[1] - a[1]);
-        }
-
-        const sexStats = getSexBreakdown(visibleRows);
-        const sqdAvg = getSQDAverages(visibleRows);
-        const topOffices = getTopItems(visibleRows, 1);
-        const topClientTypes = getTopItems(visibleRows, 4);
-
-        const highestSQD = sqdAvg
-            .map((v, i) => ({ label: `SQD${i}`, value: v }))
-            .sort((a, b) => b.value - a.value)[0];
-
-        const lowestSQD = sqdAvg
-            .map((v, i) => ({ label: `SQD${i}`, value: v }))
-            .sort((a, b) => a.value - b.value)[0];
-
-        addHeader();
-
-        let y = 40;
-
-        y = addSectionTitle("Report Overview", y);
-
-        const overviewText =
-            "This report summarizes the survey responses collected based on the selected filters. It presents the respondent profile, service quality results, and major response patterns for administrative review.";
-
-        y = addParagraph(overviewText, y);
-        y += 4;
-
-        y = addInfoLine("Office Scope:", officeValue, y);
-        y = addInfoLine("Sex Filter:", sexValue, y);
-        y = addInfoLine("Client Type:", clientTypeValue, y);
-        y = addInfoLine("Date Coverage:", dateRangeText, y);
-
-        y += 4;
-        y = addSectionTitle("Key Metrics", y);
-
-        y = addInfoLine("Total Responses:", summary.total, y);
-        y = addInfoLine("Average Age:", summary.avgAge.toFixed(1), y);
-        y = addInfoLine("Overall SQD:", summary.overallSQD.toFixed(2), y);
-        y = addInfoLine("Top Office:", topOffices[0]?.[0] || "N/A", y);
-
-        y += 4;
-        y = addSectionTitle("Key Findings", y);
-
-        const findings1 =
-            `A total of ${summary.total} responses were included in the report. The average age of respondents was ${summary.avgAge.toFixed(1)} years.`;
-
-        y = addParagraph(findings1, y);
-        y += 2;
-
-        const findings2 =
-            `${sexStats.male} (${sexStats.malePct}%) were male, ${sexStats.female} (${sexStats.femalePct}%) were female, and ${sexStats.other} (${sexStats.otherPct}%) were classified as other or unspecified.`;
-
-        y = addParagraph(findings2, y);
-        y += 2;
-
-        const findings3 =
-            `The overall SQD average was ${summary.overallSQD.toFixed(2)}. The highest-rated dimension was ${highestSQD.label} (${highestSQD.value.toFixed(2)}), while the lowest-rated dimension was ${lowestSQD.label} (${lowestSQD.value.toFixed(2)}).`;
-
-        y = addParagraph(findings3, y);
-        y += 2;
-
-        const findings4 =
-            `The office with the highest response count was ${topOffices[0]?.[0] || "N/A"}, while the most common client type was ${topClientTypes[0]?.[0] || "N/A"}.`;
-
-        y = addParagraph(findings4, y);
-
-        addFooter();
-
-        const fileDate = new Date().toISOString().slice(0, 10);
-        doc.save(`LIPACITY_Survey_Report_${fileDate}.pdf`);
+        });
     }
-    if (btnApply) btnApply.addEventListener("click", applyFilters);
-    if (btnReset) btnReset.addEventListener("click", resetFilters);
-    if (tableSearch) tableSearch.addEventListener("input", applyFilters);
-    if (generateSurveyReportBtn) generateSurveyReportBtn.addEventListener("click", generateSurveyPdf);
-
-    refreshDashboard();
 });

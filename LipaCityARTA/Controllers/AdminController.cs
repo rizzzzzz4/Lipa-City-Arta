@@ -97,14 +97,77 @@ namespace LipaCityARTA.Controllers
                 avgSQDs[8] = surveys.Average(x => x.SQD8);
             }
 
-            var trendData = surveys
-                .GroupBy(x => x.DateSubmitted.Date)
-                .Select(g => new { Date = g.Key, Count = g.Count() })
-                .OrderBy(x => x.Date)
-                .ToList();
+            List<string> trendDates = new List<string>();
+            List<int> trendCounts = new List<int>();
 
-            var trendDates = trendData.Select(x => x.Date.ToString("MMM dd")).ToList();
-            var trendCounts = trendData.Select(x => x.Count).ToList();
+            if (totalSurveys > 0)
+            {
+                var minDate = surveys.Min(x => x.DateSubmitted);
+                var maxDate = surveys.Max(x => x.DateSubmitted);
+                var totalDays = (maxDate - minDate).TotalDays;
+
+                if (totalDays <= 30)
+                {
+                    var trendData = surveys
+                        .GroupBy(x => x.DateSubmitted.Date)
+                        .Select(g => new
+                        {
+                            Label = g.Key.ToString("MMM dd"),
+                            Count = g.Count(),
+                            Date = g.Key
+                        })
+                        .OrderBy(x => x.Date)
+                        .ToList();
+
+                    trendDates = trendData.Select(x => x.Label).ToList();
+                    trendCounts = trendData.Select(x => x.Count).ToList();
+                }
+                else if (totalDays <= 90)
+                {
+                    var trendData = surveys
+                        .GroupBy(x => new
+                        {
+                            Year = x.DateSubmitted.Year,
+                            Week = System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(
+                                x.DateSubmitted,
+                                System.Globalization.CalendarWeekRule.FirstDay,
+                                DayOfWeek.Monday)
+                        })
+                        .Select(g => new
+                        {
+                            Label = $"Week {g.Key.Week}",
+                            Count = g.Count(),
+                            Year = g.Key.Year,
+                            Week = g.Key.Week
+                        })
+                        .OrderBy(x => x.Year).ThenBy(x => x.Week)
+                        .ToList();
+
+                    trendDates = trendData.Select(x => x.Label).ToList();
+                    trendCounts = trendData.Select(x => x.Count).ToList();
+                }
+                else
+                {
+                    var trendData = surveys
+                        .GroupBy(x => new
+                        {
+                            x.DateSubmitted.Year,
+                            x.DateSubmitted.Month
+                        })
+                        .Select(g => new
+                        {
+                            Label = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
+                            Count = g.Count(),
+                            Year = g.Key.Year,
+                            Month = g.Key.Month
+                        })
+                        .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                        .ToList();
+
+                    trendDates = trendData.Select(x => x.Label).ToList();
+                    trendCounts = trendData.Select(x => x.Count).ToList();
+                }
+            }
 
             var recentComplaints = complaints
                 .OrderByDescending(c => c.DateSubmitted)
@@ -307,16 +370,51 @@ namespace LipaCityARTA.Controllers
             return View(vm);
         }
 
-        public IActionResult SurveyReports()
+        public IActionResult SurveyReports(string? office, DateTime? dateFrom, DateTime? dateTo, int page = 1, int pageSize = 10)
         {
             if (!IsAdminLoggedIn())
                 return RedirectToAction("Login");
 
-            var surveys = _context.SurveyResponses
+            var query = _context.SurveyResponses.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(office))
+            {
+                query = query.Where(s => s.Office == office);
+            }
+
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(s => s.DateSubmitted >= dateFrom.Value.Date);
+            }
+
+            if (dateTo.HasValue)
+            {
+                var end = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(s => s.DateSubmitted <= end);
+            }
+
+            var allData = query
                 .OrderByDescending(s => s.DateSubmitted)
                 .ToList();
 
-            return View(surveys);
+            var pagedData = allData
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var model = new SurveyReportsViewModel
+            {
+                Surveys = pagedData,
+                AllSurveys = allData, 
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalRecords = allData.Count,
+                Office = office,
+                DateFrom = dateFrom,
+                DateTo = dateTo
+            };
+
+            return View(model);
         }
 
         public IActionResult Complaints(string? office, string? status,

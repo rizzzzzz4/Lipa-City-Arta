@@ -23,7 +23,6 @@ namespace LipaCityARTA.Models
         [EmailAddress]
         public string? Email { get; set; }
 
-        // Citizen Charter
         [Required(ErrorMessage = "Please select an answer for CC1")]
         public int? CC1 { get; set; }
 
@@ -33,7 +32,6 @@ namespace LipaCityARTA.Models
         [Required(ErrorMessage = "Please select an answer for CC3")]
         public int? CC3 { get; set; }
 
-        // Service Quality (SQD0–SQD8)
         [Required(ErrorMessage = "Please rate this question")]
         public int SQD0 { get; set; }
         public int SQD1 { get; set; }
@@ -48,5 +46,6 @@ namespace LipaCityARTA.Models
         public string? Suggestions { get; set; }
 
         public DateTime DateSubmitted { get; set; } = DateTime.Now;
+
     }
 }

@@ -9,10 +9,15 @@
         return el ? JSON.parse(el.textContent) : [];
     };
 
+    // ===============================
+    // DATA
+    // ===============================
     const sqdLabels = ["SQD0", "SQD1", "SQD2", "SQD3", "SQD4", "SQD5", "SQD6", "SQD7", "SQD8"];
     const sqdAverages = readJson("sqdJson");
-    const trendLabels = readJson("trendLabelsJson");
+
+    const trendLabels = readJson("trendLabelsJson"); // ✅ already formatted from backend
     const trendCounts = readJson("trendCountsJson");
+
     const officeLabels = readJson("officeLabelsJson");
     const officeCounts = readJson("officeCountsJson");
 
@@ -22,6 +27,9 @@
 
     if (!avgEl || !trendEl || !officeEl) return;
 
+    // ===============================
+    // 📊 SQD CHART
+    // ===============================
     new Chart(avgEl, {
         type: "bar",
         data: {
@@ -35,6 +43,10 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 800,
+                easing: "easeOutQuart"
+            },
             plugins: {
                 legend: { display: false }
             },
@@ -51,28 +63,54 @@
         }
     });
 
+    // ===============================
+    // 📈 TREND CHART (FIXED 🔥)
+    // ===============================
     new Chart(trendEl, {
         type: "line",
         data: {
             labels: trendLabels,
             datasets: [{
+                label: "Survey Submissions",
                 data: trendCounts,
                 borderColor: "#7C0A02",
                 backgroundColor: "rgba(124, 10, 2, 0.12)",
                 fill: true,
                 tension: 0.35,
-                pointRadius: 4,
+                borderWidth: 3,
+                pointRadius: 3,
                 pointHoverRadius: 5
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+
+            animation: {
+                duration: 800,
+                easing: "easeOutQuart"
             },
+
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "top"
+                }
+            },
+
             scales: {
                 x: {
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10, // 🔥 prevents overcrowding
+                        maxRotation: 0,
+                        minRotation: 0
+                    },
                     grid: { display: false }
                 },
                 y: {
@@ -83,6 +121,9 @@
         }
     });
 
+    // ===============================
+    // 🥧 OFFICE CHART (DOUGHNUT)
+    // ===============================
     const total = officeCounts.reduce((a, b) => a + b, 0);
 
     if (!officeLabels.length || total === 0) {
@@ -165,4 +206,5 @@
         },
         plugins: [centerTextPlugin]
     });
+
 });

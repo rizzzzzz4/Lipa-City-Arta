@@ -122,8 +122,6 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-
-            // Reason / Issue tags (multiple select)
             const reasonTags = document.querySelectorAll("#complaint-tags .complaint-tag");
             const reasonInput = document.getElementById("TagInput");
 
@@ -152,7 +150,6 @@
                 });
             });
 
-            // Client Type tags
             function setupClientTagSelector(containerId, inputId) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
@@ -172,7 +169,6 @@
                 }
 
                 tags.forEach(tag => {
-                    // Single click = select and hide others
                     tag.addEventListener("click", function () {
                         tags.forEach(t => {
                             t.classList.remove("selected");

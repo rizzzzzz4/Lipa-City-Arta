@@ -1,359 +1,151 @@
-﻿@model List<LipaCityARTA.Models.SurveyResponse>
+﻿@model LipaCityARTA.ViewModels.SurveyReportsViewModel
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Survey Reports";
 
-    var responses = Model ?? new List<LipaCityARTA.Models.SurveyResponse>();
-    var total = responses.Count;
-
-    double avgAge = total > 0 ? responses.Average(x => x.Age) : 0;
-
-    double Avg(Func<LipaCityARTA.Models.SurveyResponse, int> selector) =>
-        total > 0 ? responses.Average(x => (double)selector(x)) : 0;
-
-    var avgSQD = new double[]
-    {
-        Avg(x => x.SQD0),
-        Avg(x => x.SQD1),
-        Avg(x => x.SQD2),
-        Avg(x => x.SQD3),
-        Avg(x => x.SQD4),
-        Avg(x => x.SQD5),
-        Avg(x => x.SQD6),
-        Avg(x => x.SQD7),
-        Avg(x => x.SQD8)
-    };
-
-    var overallAvgSQD = total > 0 ? avgSQD.Average() : 0;
-
-    int maleCount = total > 0 ? responses.Count(x => (x.Sex ?? "").Trim().ToLower() == "male") : 0;
-    int femaleCount = total > 0 ? responses.Count(x => (x.Sex ?? "").Trim().ToLower() == "female") : 0;
-    int otherSexCount = total - maleCount - femaleCount;
-
-    var clientTypeGroups = total > 0
-        ? responses.GroupBy(x => (x.ClientType ?? "Unknown").Trim())
-              .Select(g => new LipaCityARTA.Models.GroupCount
-              {
-                  Name = g.Key,
-                  Count = g.Count()
-              })
-              .OrderByDescending(x => x.Count)
-              .ToList()
-        : new List<LipaCityARTA.Models.GroupCount>();
-
-    var officeGroups = total > 0
-        ? responses.GroupBy(x => (x.Office ?? "Unknown").Trim())
-              .Select(g => new LipaCityARTA.Models.GroupCount
-              {
-                  Name = g.Key,
-                  Count = g.Count()
-              })
-              .OrderByDescending(x => x.Count)
-              .ToList()
-        : new List<LipaCityARTA.Models.GroupCount>();
-
-    var topClientType = clientTypeGroups.Any() ? clientTypeGroups.First().Name : "N/A";
-    var topOffice = officeGroups.Any() ? officeGroups.First().Name : "N/A";
-
-    var offices = officeGroups.Select(o => (string)o.Name).ToList();
-    var clientTypes = clientTypeGroups.Select(c => (string)c.Name).ToList();
+    var responses = Model.Surveys ?? new List<LipaCityARTA.Models.SurveyResponse>();
 }
 
-<link rel="stylesheet" href="@Url.Content("~/css/admin-survey-reports.css")" />
+<link rel="stylesheet" href="~/css/admin-survey-reports.css" />
 
 <div class="sr-page">
 
-    <div class="sr-header">
-        <div class="sr-header-text">
-            <p class="sr-eyebrow">Admin Analytics</p>
-            <h1 class="sr-page-title">Survey Reports</h1>
-        </div>
-
-        <div class="sr-header-meta">
-            <div class="sr-meta-card">
-                <span class="sr-meta-label">Last Updated</span>
-                <strong>@DateTime.Now.ToString("MMM dd, yyyy hh:mm tt")</strong>
-            </div>
-        </div>
-    </div>
-
     <div class="sr-kpi-grid">
+
         <div class="sr-kpi-card">
             <div class="sr-kpi-label">Total Responses</div>
-            <p class="sr-kpi-value" id="kpiTotal">@total</p>
-            <div class="sr-kpi-sub">All submitted surveys</div>
+            <div class="sr-kpi-value" id="kpiTotal">0</div>
         </div>
 
         <div class="sr-kpi-card">
             <div class="sr-kpi-label">Average Age</div>
-            <p class="sr-kpi-value" id="kpiAvgAge">@avgAge.ToString("0.0")</p>
-            <div class="sr-kpi-sub">Across all respondents</div>
+            <div class="sr-kpi-value" id="kpiAvgAge">0</div>
         </div>
 
         <div class="sr-kpi-card">
-            <div class="sr-kpi-label">Overall SQD Average</div>
-            <p class="sr-kpi-value" id="kpiOverallSQD">@overallAvgSQD.ToString("0.00")</p>
-            <div class="sr-kpi-sub">Average of SQD0–SQD8</div>
+            <div class="sr-kpi-label">Overall SQD</div>
+            <div class="sr-kpi-value" id="kpiOverallSQD">0</div>
         </div>
 
         <div class="sr-kpi-card">
             <div class="sr-kpi-label">Top Office</div>
-            <p class="sr-kpi-value sr-kpi-value-small" id="kpiTopOffice">@topOffice</p>
-            <div class="sr-kpi-sub">Office with most responses</div>
+            <div class="sr-kpi-value" id="kpiTopOffice">-</div>
         </div>
+
     </div>
 
+    <!-- FILTER -->
     <div class="sr-card sr-filters">
-        <div class="sr-card-top">
-            <div>
-                <div class="sr-section-title">Filters</div>
-                <p class="sr-section-subtitle">Refine the displayed survey data using the options below.</p>
-            </div>
 
-            <div class="sr-filter-actions">
-                <button type="button" class="sr-btn sr-btn-primary" id="btnApply">Apply</button>
-                <button type="button" class="sr-btn sr-btn-secondary" id="btnReset">Reset</button>
-                <button type="button" id="generateSurveyReportBtn" class="c-export-btn">
-                    Generate Report
-                </button>
-            </div>
-        </div>
+        <select name="office">
+            <option value="">All Offices</option>
+            @foreach (var o in Model.AllSurveys
+                .Select(x => x.Office)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .OrderBy(x => x))
+            {
+                <option value="@o">@o</option>
+            }
+        </select>
 
-        <div class="sr-divider"></div>
+        <input type="date" name="dateFrom" />
+        <input type="date" name="dateTo" />
 
-        <div class="sr-filter-grid">
-            <div class="sr-field">
-                <label>Office</label>
-                <select id="fOffice">
-                    <option value="">All</option>
-                    @foreach (var o in offices)
-                    {
-                        <option value="@o">@o</option>
-                    }
-                </select>
-            </div>
+        <button type="button" id="applyBtn" class="sr-btn sr-btn-primary">Apply</button>
 
-            <div class="sr-field">
-                <label>Sex</label>
-                <select id="fSex">
-                    <option value="">All</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+        <a href="@Url.Action("SurveyReports")" class="sr-btn sr-btn-secondary">Reset</a>
 
-            <div class="sr-field">
-                <label>Client Type</label>
-                <select id="fClientType">
-                    <option value="">All</option>
-                    @foreach (var ct in clientTypes)
-                    {
-                        <option value="@ct">@ct</option>
-                    }
-                </select>
-            </div>
+        <button id="generateSurveyReportBtn" class="btn btn-danger">
+            Generate Report
+        </button>
 
-            <div class="sr-field">
-                <label>Age Min</label>
-                <input type="number" id="fAgeMin" min="1" max="120" placeholder="e.g. 18" />
-            </div>
-
-            <div class="sr-field">
-                <label>Age Max</label>
-                <input type="number" id="fAgeMax" min="1" max="120" placeholder="e.g. 60" />
-            </div>
-
-            <div class="sr-field">
-                <label>From Date</label>
-                <input type="date" id="fFrom" />
-            </div>
-
-            <div class="sr-field">
-                <label>To Date</label>
-                <input type="date" id="fTo" />
-            </div>
-
-            <div class="sr-count-wrap">
-                <span class="sr-badge" id="filteredCountBadge">Showing: @total / @total</span>
-            </div>
-        </div>
     </div>
 
-    <div class="sr-card sr-chart-card">
-        <div class="sr-chart-head">
-            <div class="sr-chart-title">Average Ratings (SQD0–SQD8)</div>
-            <p class="sr-chart-subtitle">Average score per service quality dimension.</p>
-        </div>
-        <div class="sr-chart-box sr-chart-box-sm">
-            <canvas id="sqdChart"></canvas>
-        </div>
-    </div>
+    <div class="sr-card"><canvas id="sqdChart"></canvas></div>
+    <div class="sr-card"><canvas id="sexChart"></canvas></div>
+    <div class="sr-card"><canvas id="clientChart"></canvas></div>
+    <div class="sr-card"><canvas id="officeChart"></canvas></div>
 
-    <div class="sr-card sr-chart-card">
-        <div class="sr-chart-head">
-            <div class="sr-chart-title">Sex Distribution</div>
-            <p class="sr-chart-subtitle">Breakdown of respondents by sex.</p>
-        </div>
-        <div class="sr-chart-box sr-chart-box-md">
-            <canvas id="sexChart"></canvas>
-        </div>
-    </div>
+    <div class="sr-card">
 
-    <div class="sr-card sr-chart-card">
-        <div class="sr-chart-head">
-            <div class="sr-chart-title">Client Type Distribution</div>
-            <p class="sr-chart-subtitle">Response volume by client type.</p>
-        </div>
-        <div class="sr-chart-box sr-chart-box-md">
-            <canvas id="clientChart"></canvas>
-        </div>
-    </div>
+        <table class="sr-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Office</th>
+                    <th>Age</th>
+                    <th>Sex</th>
+                    <th>Client</th>
+                    <th>SQD Avg</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in responses)
+                {
+                    var avg = new[] { s.SQD0, s.SQD1, s.SQD2, s.SQD3, s.SQD4, s.SQD5, s.SQD6, s.SQD7, s.SQD8 }.Average();
 
-    <div class="sr-card sr-card-wide sr-chart-card">
-        <div class="sr-chart-head">
-            <div class="sr-chart-title">Top Offices</div>
-            <p class="sr-chart-subtitle">Offices with the highest number of survey responses.</p>
-        </div>
-        <div class="sr-chart-box sr-chart-box-lg">
-            <canvas id="officeChart"></canvas>
-        </div>
-    </div>
-
-    <div class="sr-card sr-table-wrap">
-        <div class="sr-table-head">
-            <div>
-                <div class="sr-section-title">Survey Response Records</div>
-                <p class="sr-section-subtitle">Detailed table of all submitted survey responses.</p>
-            </div>
-
-            <div class="sr-table-summary-grid">
-                <div class="sr-table-summary">
-                    <span class="sr-muted">Top Client Type</span>
-                    <strong id="topClientTypeText">@topClientType</strong>
-                </div>
-
-                <div class="sr-table-summary">
-                    <span class="sr-muted">Top Office</span>
-                    <strong id="topOfficeSummary">@topOffice</strong>
-                </div>
-
-                <div class="sr-table-summary">
-                    <span class="sr-muted">Visible Records</span>
-                    <strong id="tableVisibleCount">@total</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="sr-table-toolbar">
-            <div class="sr-table-search">
-                <label for="tableSearch">Quick Search</label>
-                <input type="text" id="tableSearch" placeholder="Search office, client type, suggestion, or date..." />
-            </div>
-
-            <div class="sr-table-toolbar-note">
-                <span id="filteredCountText">Showing: @total / @total</span>
-            </div>
-        </div>
-
-        <div class="sr-table-scroll">
-            <table class="sr-table" id="surveyTable">
-                <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Office</th>
-                        <th>Age</th>
-                        <th>Sex</th>
-                        <th>Client Type</th>
-                        <th>CC1</th>
-                        <th>CC2</th>
-                        <th>CC3</th>
-                        <th>SQD Summary</th>
-                        <th>Suggestions</th>
-                        <th>Date Submitted</th>
+                        <td>#@s.Id</td>
+                        <td>@s.Office</td>
+                        <td>@s.Age</td>
+                        <td>@s.Sex</td>
+                        <td>@s.ClientType</td>
+                        <td>@avg.ToString("0.00")</td>
+                        <td>@s.DateSubmitted.ToString("yyyy-MM-dd")</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var s in responses)
-                    {
-                        var sex = (s.Sex ?? "").Trim();
-                        var clientType = (s.ClientType ?? "").Trim();
-                        var office = (s.Office ?? "").Trim();
+                }
+            </tbody>
+        </table>
 
-                        var sexNorm = sex.ToLower();
-                        var clientNorm = clientType.ToLower();
-                        var officeNorm = office.ToLower();
+        <div class="pagination">
 
-                        var dateIso = s.DateSubmitted.ToString("yyyy-MM-dd");
+            <a href="@Url.Action("SurveyReports", new { page = Model.CurrentPage - 1 })" class="page-btn">Prev</a>
 
-                        var sqdValues = new[] { s.SQD0, s.SQD1, s.SQD2, s.SQD3, s.SQD4, s.SQD5, s.SQD6, s.SQD7, s.SQD8 };
-                        var rowAvgSqd = sqdValues.Average();
-                        var sqdCsv = string.Join(",", sqdValues);
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <a href="@Url.Action("SurveyReports", new { page = i })"
+                       class="page-btn @(i == Model.CurrentPage ? "active" : "")">
+                    @i
+                </a>
+            }
 
-                        <tr class="data-row"
-                            data-office="@officeNorm"
-                            data-sex="@sexNorm"
-                            data-client="@clientNorm"
-                            data-age="@s.Age"
-                            data-date="@dateIso"
-                            data-sqds="@sqdCsv">
+            <a href="@Url.Action("SurveyReports", new { page = Model.CurrentPage + 1 })" class="page-btn">Next</a>
 
-                            <td>
-                                <span class="sr-id-pill">#@s.Id</span>
-                            </td>
-
-                            <td>
-                                <div class="sr-office-cell">@office</div>
-                            </td>
-
-                            <td>@s.Age</td>
-
-                            <td>
-                                <span class="sr-chip @(sexNorm == "male" ? "sr-chip-blue" : sexNorm == "female" ? "sr-chip-pink" : "sr-chip-gray")">
-                                    @(string.IsNullOrWhiteSpace(sex) ? "Unspecified" : sex)
-                                </span>
-                            </td>
-
-                            <td>
-                                <span class="sr-chip sr-chip-neutral">
-                                    @(string.IsNullOrWhiteSpace(clientType) ? "Unknown" : clientType)
-                                </span>
-                            </td>
-
-                            <td>@s.CC1</td>
-                            <td>@s.CC2</td>
-                            <td>@s.CC3</td>
-
-                            <td>
-                                <div class="sr-sqd-block">
-                                    <strong>@rowAvgSqd.ToString("0.00")</strong>
-                                    <small>@string.Join(", ", sqdValues)</small>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="sr-suggestion-cell">
-                                    @(string.IsNullOrWhiteSpace(s.Suggestions) ? "—" : s.Suggestions)
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="sr-date-cell">@s.DateSubmitted.ToString("yyyy-MM-dd HH:mm")</div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
         </div>
+
     </div>
 
 </div>
 
+<script id="surveyData" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.AllSurveys.Select(s => new
+        {
+            age = s.Age,
+            sex = s.Sex ?? "",
+            client = s.ClientType ?? "",
+            office = s.Office ?? "",
+            date = s.DateSubmitted.ToString("yyyy-MM-dd"),
+
+            sqd0 = (int?)s.SQD0 ?? 0,
+            sqd1 = (int?)s.SQD1 ?? 0,
+            sqd2 = (int?)s.SQD2 ?? 0,
+            sqd3 = (int?)s.SQD3 ?? 0,
+            sqd4 = (int?)s.SQD4 ?? 0,
+            sqd5 = (int?)s.SQD5 ?? 0,
+            sqd6 = (int?)s.SQD6 ?? 0,
+            sqd7 = (int?)s.SQD7 ?? 0,
+            sqd8 = (int?)s.SQD8 ?? 0
+        })
+    ))
+</script>
+
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/js/admin-surveyreports.js"></script>
 }
