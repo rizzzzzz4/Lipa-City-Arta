@@ -9,13 +9,7 @@
     const satisfaction = readJson("officeSatJson");
     const complaints = readJson("officeCmpJson");
 
-    const trendLabels = readJson("trendLabelsJson").map(d => {
-        const date = new Date(d);
-        return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit"
-        });
-    });
+    const trendLabels = readJson("trendLabelsJson");
 
     const trendSat = readJson("trendSatJson");
     const trendCmp = readJson("trendCmpJson");
@@ -80,8 +74,7 @@
                         tension: 0.35,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6,
-                        yAxisID: "ySat"
+                        pointHoverRadius: 6
                     },
                     {
                         label: "Complaints",
@@ -91,8 +84,7 @@
                         tension: 0.35,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6,
-                        yAxisID: "yCmp"
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -135,7 +127,7 @@
                     x: {
                         ticks: {
                             autoSkip: true,
-                            maxTicksLimit: 6,
+                            maxTicksLimit: 5,
                             maxRotation: 0,
                             minRotation: 0
                         },
@@ -143,27 +135,8 @@
                             display: false
                         }
                     },
-                    ySat: {
-                        type: "linear",
-                        position: "left",
-                        min: 0,
-                        max: 5,
-                        title: {
-                            display: true,
-                            text: "Satisfaction"
-                        }
-                    },
-                    yCmp: {
-                        type: "linear",
-                        position: "right",
+                    y: {
                         beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: "Complaints"
-                        },
-                        grid: {
-                            drawOnChartArea: false
-                        },
                         ticks: {
                             precision: 0
                         }

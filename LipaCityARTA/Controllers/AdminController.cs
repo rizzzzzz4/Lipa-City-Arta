@@ -125,6 +125,7 @@ namespace LipaCityARTA.Controllers
                 else if (totalDays <= 90)
                 {
                     var trendData = surveys
+                        .AsEnumerable() 
                         .GroupBy(x => new
                         {
                             Year = x.DateSubmitted.Year,
@@ -135,12 +136,13 @@ namespace LipaCityARTA.Controllers
                         })
                         .Select(g => new
                         {
-                            Label = $"Week {g.Key.Week}",
+                            Label = $"{g.Min(x => x.DateSubmitted):MMM dd} - {g.Max(x => x.DateSubmitted):MMM dd}",
                             Count = g.Count(),
                             Year = g.Key.Year,
                             Week = g.Key.Week
                         })
-                        .OrderBy(x => x.Year).ThenBy(x => x.Week)
+                        .OrderBy(x => x.Year)
+                        .ThenBy(x => x.Week)
                         .ToList();
 
                     trendDates = trendData.Select(x => x.Label).ToList();
@@ -216,52 +218,106 @@ namespace LipaCityARTA.Controllers
             double RowSatisfaction(SurveyResponse s) =>
                 (s.SQD0 + s.SQD1 + s.SQD2 + s.SQD3 + s.SQD4 + s.SQD5 + s.SQD6 + s.SQD7 + s.SQD8) / 9.0;
 
-            var satisfactionGroups = surveysQ
-                .AsEnumerable()
-                .GroupBy(s => s.DateSubmitted.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Avg = g.Average(RowSatisfaction)
-                })
-                .OrderBy(x => x.Date)
-                .ToList();
+            var totalDays = (endDisplay - start).TotalDays;
 
-            var complaintGroups = complaintsQ
-                .GroupBy(c => c.DateSubmitted.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToList();
+            List<string> labels;
+            List<double> satTrend;
+            List<int> cmpTrend;
 
-            var labels = satisfactionGroups
-                .Select(x => x.Date.ToString("yyyy-MM-dd"))
-                .Union(complaintGroups.Select(x => x.Date.ToString("yyyy-MM-dd")))
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
+            if (totalDays <= 30)
+            {
+                var sat = surveysQ
+                    .AsEnumerable()
+                    .GroupBy(s => s.DateSubmitted.Date)
+                    .Select(g => new { Date = g.Key, Avg = g.Average(RowSatisfaction) })
+                    .ToList();
 
-            var satTrend = labels
-                .Select(l => satisfactionGroups.FirstOrDefault(x => x.Date.ToString("yyyy-MM-dd") == l)?.Avg ?? 0)
-                .ToList();
+                var cmp = complaintsQ
+                    .GroupBy(c => c.DateSubmitted.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() })
+                    .ToList();
 
-            var cmpTrend = labels
-                .Select(l => complaintGroups.FirstOrDefault(x => x.Date.ToString("yyyy-MM-dd") == l)?.Count ?? 0)
-                .ToList();
+                labels = sat.Select(x => x.Date.ToString("yyyy-MM-dd")).ToList();
+                satTrend = sat.Select(x => x.Avg).ToList();
+                cmpTrend = cmp.Select(x => x.Count).ToList();
+            }
+            else if (totalDays <= 90)
+            {
+                var sat = surveysQ
+                    .AsEnumerable()
+                    .GroupBy(s => new
+                    {
+                        Year = s.DateSubmitted.Year,
+                        Week = System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(
+                            s.DateSubmitted,
+                            System.Globalization.CalendarWeekRule.FirstDay,
+                            DayOfWeek.Monday)
+                    })
+                    .Select(g => new
+                    {
+                        Label = $"{g.Min(x => x.DateSubmitted):MMM dd} - {g.Max(x => x.DateSubmitted):MMM dd}",
+                        Avg = g.Average(RowSatisfaction)
+                    })
+                    .ToList();
+
+                var cmp = complaintsQ
+                    .AsEnumerable()
+                    .GroupBy(c => new
+                    {
+                        Year = c.DateSubmitted.Year,
+                        Week = System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(
+                            c.DateSubmitted,
+                            System.Globalization.CalendarWeekRule.FirstDay,
+                            DayOfWeek.Monday)
+                    })
+                    .Select(g => new
+                    {
+                        Label = $"{g.Min(x => x.DateSubmitted):MMM dd} - {g.Max(x => x.DateSubmitted):MMM dd}",
+                        Count = g.Count()
+                    })
+                    .ToList();
+
+                labels = sat.Select(x => x.Label).ToList();
+                satTrend = sat.Select(x => x.Avg).ToList();
+                cmpTrend = cmp.Select(x => x.Count).ToList();
+            }
+            else
+            {
+                var sat = surveysQ
+                    .AsEnumerable()
+                    .GroupBy(s => new { s.DateSubmitted.Year, s.DateSubmitted.Month })
+                    .Select(g => new
+                    {
+                        Label = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
+                        Avg = g.Average(RowSatisfaction)
+                    })
+                    .ToList();
+
+                var cmp = complaintsQ
+                    .GroupBy(c => new { c.DateSubmitted.Year, c.DateSubmitted.Month })
+                    .Select(g => new
+                    {
+                        Label = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
+                        Count = g.Count()
+                    })
+                    .ToList();
+
+                labels = sat.Select(x => x.Label).ToList();
+                satTrend = sat.Select(x => x.Avg).ToList();
+                cmpTrend = cmp.Select(x => x.Count).ToList();
+            }
 
             var offices = _context.SurveyResponses
                 .Where(s => !string.IsNullOrEmpty(s.Office))
                 .Select(s => s.Office!)
-                .Union(
-                    _context.Complaints
-                        .Where(c => !string.IsNullOrEmpty(c.Office))
-                        .Select(c => c.Office!)
-                )
+                .Union(_context.Complaints
+                    .Where(c => !string.IsNullOrEmpty(c.Office))
+                    .Select(c => c.Office!))
                 .Distinct()
-                .OrderBy(x => x)
+                .ToList();
+
+            offices = offices
+                .Take(8) 
                 .ToList();
 
             var officeSat = surveysQ

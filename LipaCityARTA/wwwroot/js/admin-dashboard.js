@@ -9,13 +9,10 @@
         return el ? JSON.parse(el.textContent) : [];
     };
 
-    // ===============================
-    // DATA
-    // ===============================
     const sqdLabels = ["SQD0", "SQD1", "SQD2", "SQD3", "SQD4", "SQD5", "SQD6", "SQD7", "SQD8"];
     const sqdAverages = readJson("sqdJson");
 
-    const trendLabels = readJson("trendLabelsJson"); // ✅ already formatted from backend
+    const trendLabels = readJson("trendLabelsJson"); 
     const trendCounts = readJson("trendCountsJson");
 
     const officeLabels = readJson("officeLabelsJson");
@@ -27,9 +24,6 @@
 
     if (!avgEl || !trendEl || !officeEl) return;
 
-    // ===============================
-    // 📊 SQD CHART
-    // ===============================
     new Chart(avgEl, {
         type: "bar",
         data: {
@@ -63,9 +57,6 @@
         }
     });
 
-    // ===============================
-    // 📈 TREND CHART (FIXED 🔥)
-    // ===============================
     new Chart(trendEl, {
         type: "line",
         data: {
@@ -107,9 +98,12 @@
                 x: {
                     ticks: {
                         autoSkip: true,
-                        maxTicksLimit: 10, // 🔥 prevents overcrowding
+                        maxTicksLimit: 8,
                         maxRotation: 0,
-                        minRotation: 0
+                        minRotation: 0,
+                        font: {
+                            size: 11
+                        }
                     },
                     grid: { display: false }
                 },
@@ -121,9 +115,6 @@
         }
     });
 
-    // ===============================
-    // 🥧 OFFICE CHART (DOUGHNUT)
-    // ===============================
     const total = officeCounts.reduce((a, b) => a + b, 0);
 
     if (!officeLabels.length || total === 0) {
