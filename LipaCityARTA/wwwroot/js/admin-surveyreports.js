@@ -22,7 +22,6 @@
         return g;
     }
 
-    // ✅ FIXED (MISSING FUNCTION)
     function getBase64Image(imgUrl, callback) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
@@ -200,13 +199,10 @@
                 const doc = new jsPDF();
                 let y = 15;
 
-                // =========================
-                // HEADER + LOGO
-                // =========================
                 doc.addImage(logoBase64, "PNG", 14, 10, 25, 25);
 
                 doc.setFontSize(18);
-                doc.text("Analytics Performance Report", 45, 18);
+                doc.text("Survey Quality Dimensions Report", 45, 18);
 
                 doc.setFontSize(11);
                 doc.text("Lipa City Anti-Red Tape Authority", 45, 24);
@@ -218,9 +214,6 @@
 
                 y += 10;
 
-                // =========================
-                // KEY METRICS
-                // =========================
                 doc.setFontSize(12);
                 doc.setFont(undefined, "bold");
                 doc.text("Key Metrics", 14, y);
@@ -232,13 +225,10 @@
 
                 doc.text(`Total Responses: ${computed.total}`, 14, y); y += 6;
                 doc.text(`Average Age: ${computed.avgAge.toFixed(1)}`, 14, y); y += 6;
-                doc.text(`Overall SQD: ${computed.overallSQD.toFixed(2)}`, 14, y);
+                doc.text(`Overall SQD (Service Quality Dimensions): ${computed.overallSQD.toFixed(2)}`, 14, y);
 
                 y += 10;
 
-                // =========================
-                // KEY FINDINGS
-                // =========================
                 doc.setFont(undefined, "bold");
                 doc.text("Key Findings", 14, y);
 
@@ -265,9 +255,6 @@
 
                 y += 5;
 
-                // =========================
-                // PAGE 1 → SUMMARY TABLE
-                // =========================
                 const officeSummary = {};
 
                 data.forEach(s => {
@@ -302,9 +289,6 @@
                     headStyles: { fillColor: [124, 10, 2] }
                 });
 
-                // =========================
-                // PAGE 2 → DETAILED TABLE
-                // =========================
                 doc.addPage();
 
                 doc.setFontSize(14);
@@ -335,9 +319,6 @@
                     headStyles: { fillColor: [124, 10, 2] }
                 });
 
-                // =========================
-                // SAVE PDF
-                // =========================
                 doc.save("ARTA_Survey_Report.pdf");
 
             });
